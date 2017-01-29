@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<HEAD>
+    <title> Audio Test</title>
+</HEAD>
+<BODY onload="onLoad();">
+
+    <script src="Javascript/WebAudio.js"></script>
+
+    <script>
+        function onLoad() {
+            WebAudio.init();
+            WebAudio.load("Sounds/owl.wav", "owl");
+        }
+
+        function decodeSound() {
+            WebAudio.decode("owl");
+        }
+
+        function playSound() {
+            WebAudio.play("owl");
+        }
+
+    </script>
+
+
+    NEW PAGE!!
+    <br />
+    <br />
+    <input type="button" value="DECODE" onclick="decodeSound();" />
+    <input type="button" value="PLAY" onclick="playSound();" />
+</BODY>
