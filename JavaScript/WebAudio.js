@@ -9,7 +9,6 @@ function Sound(url, alias)  {
     this.buffer = null;     // AudioBuffer object
     this.loaded = false;
     
-
 }
 
 Sound.prototype.load = function () {
@@ -38,6 +37,8 @@ Sound.prototype.decode = function () {
     var self = this;
     WebAudio.context.decodeAudioData(self.response,
         function (buffer /* AudioBuffer */) {   // Success
+            delete self.response;
+            self.response = null;
             self.buffer = buffer;
             self.loaded = true;
         },
@@ -46,18 +47,34 @@ Sound.prototype.decode = function () {
         });
 }
 
-Sound.prototype.play = function () {
+// Optionally pass a Canvas2D object to display the channel information.
+Sound.prototype.play = function (canvas) {
 
     if (!this.loaded) {
         console.log("Sound " + this.alias + "not yet loaded.");
         return;
     }
 
+    console.log("Sample Rate: " + this.buffer.sampleRate + " Channels: " + this.buffer.numberOfChannels + " Length: " + this.buffer.length + " Duration: " + this.buffer.duration);
+
     var context = WebAudio.context;
-    var source = context.createBufferSource(); // creates a sound source
-    source.buffer = this.buffer;                    // tell the source which sound to play
+
+    var delay = Number(document.getElementById("delay").value);
+
+    var source = new AudioBufferSourceNode(context, { buffer: this.buffer });
     source.connect(context.destination);       // connect the source to the context's destination (the speakers)
-    source.start(0);                           // play the source now
+    
+    //var source2 = new AudioBufferSourceNode(context, { buffer: this.buffer });
+    //source2.connect(context.destination);
+
+    if (canvas) {
+        canvas.setToChannelData(this.buffer.getChannelData(0 /* channel number */));
+    }
+
+    source.start(context.currentTime);         // play the source now
+    
+
+    //source2.start(context.currentTime + delay);    
 }
 
 
@@ -88,19 +105,13 @@ var WebAudio =
         newSound.load();
     },
 
-    decode: function (alias) {
-        var sound = this.soundMap[alias];
-        if (!sound)
-            console.log("Sound " + alias + "does not exist");
-        sound.decode();
-    },
-
-    play: function (alias) {
+    // Play the sound with the passed alias.  Optionally pass in a canvas to display the sound graphically.
+    play: function (alias, canvas) {
 
         var sound = this.soundMap[alias];
         if (!sound)
             console.log("Sound " + alias + "does not exist");
-        sound.play();
+        sound.play(canvas);
     }
 
 

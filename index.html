@@ -5,27 +5,43 @@
 <BODY onload="onLoad();">
 
     <script src="Javascript/WebAudio.js"></script>
+    <script src="Javascript/Canvas2D.js"></script>
 
     <script>
+        var canvas = null;
+
         function onLoad() {
             WebAudio.init();
             WebAudio.load("Sounds/owl.wav", "owl");
+            WebAudio.load("Sounds/bird1.wav", "bird1");
+            WebAudio.load("Sounds/bird2.wav", "bird2");
+            WebAudio.load("Sounds/sword.wav", "sword");
+            WebAudio.load("Sounds/AnMP3.mp3", "mp3");
+
+            this.canvas = new Canvas2D(document.getElementById("canvas_2d"));
+
+        }
+                
+        function playSound(alias) {
+            WebAudio.play(alias, canvas);
+
         }
 
-        function decodeSound() {
-            WebAudio.decode("owl");
-        }
+     
 
-        function playSound() {
-            WebAudio.play("owl");
-        }
 
     </script>
-
-
+    
     NEW PAGE!!
     <br />
     <br />
-    <input type="button" value="DECODE" onclick="decodeSound();" />
-    <input type="button" value="PLAY" onclick="playSound();" />
+    Delay: <input type="text" id="delay" value="0.5" /><br />
+    <input type="button" value="OWL" onclick="playSound('owl');" /><br />
+    <input type="button" value="BIRD 1" onclick="playSound('bird1');" /><br />
+    <input type="button" value="BIRD 2" onclick="playSound('bird2');" /><br />
+    <input type="button" value="SWORD" onclick="playSound('sword');" /><br />
+    <input type="button" value="MP3" onclick="playSound('mp3');" /><br />
+
+    <canvas id="canvas_2d" width="20000" height="300" tabindex="2">Does not support canvas</canvas>
 </BODY>
+
