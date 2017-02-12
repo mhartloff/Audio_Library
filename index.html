@@ -4,44 +4,51 @@
 </HEAD>
 <BODY onload="onLoad();">
 
-    <script src="Javascript/WebAudio.js"></script>
-    <script src="Javascript/Canvas2D.js"></script>
+	<script src="Javascript/WebAudio.js"></script>
+	<script src="Javascript/Canvas2D.js"></script>
 
-    <script>
-        var canvas = null;
+	<script>
+		var canvas = null;
 
-        function onLoad() {
-            WebAudio.init();
-            WebAudio.load("Sounds/owl.wav", "owl");
-            WebAudio.load("Sounds/bird1.wav", "bird1");
-            WebAudio.load("Sounds/bird2.wav", "bird2");
-            WebAudio.load("Sounds/sword.wav", "sword");
-            WebAudio.load("Sounds/AnMP3.mp3", "mp3");
+		function onLoad() {
+			WebAudio.init();
+			WebAudio.load("Sounds/owl.wav", "owl");
+			WebAudio.load("Sounds/bird1.wav", "bird1");
+			WebAudio.load("Sounds/bird2.wav", "bird2");
+			WebAudio.load("Sounds/sword.wav", "sword");
+			WebAudio.load("Sounds/AnMP3.mp3", "mp3");
+			WebAudio.load("Sounds/Scream.wav", "Scream");
+			//WebAudio.load("Sounds/Laugh.wav", "Laugh");
+			//WebAudio.load("Sounds/Talking.wav", "Talking");
 
-            this.canvas = new Canvas2D(document.getElementById("canvas_2d"));
+			this.canvas = new Canvas2D(document.getElementById("canvas_2d"));
 
-        }
+		}
                 
-        function playSound(alias) {
-            WebAudio.play(alias, canvas);
+		function playSound(alias) {
+			var sound = new Sound(WebAudio.get(alias));
+			sound.play();
+			var div = document.getElementById("sound_info");
+			sound.source.displayInfo(div);
+			sound.source.drawOnCanvas(this.canvas);
+			
+		}
 
-        }
-
-     
-
-
-    </script>
+	</script>
     
-    NEW PAGE!!
-    <br />
-    <br />
-    Delay: <input type="text" id="delay" value="0.5" /><br />
-    <input type="button" value="OWL" onclick="playSound('owl');" /><br />
-    <input type="button" value="BIRD 1" onclick="playSound('bird1');" /><br />
-    <input type="button" value="BIRD 2" onclick="playSound('bird2');" /><br />
-    <input type="button" value="SWORD" onclick="playSound('sword');" /><br />
-    <input type="button" value="MP3" onclick="playSound('mp3');" /><br />
-
-    <canvas id="canvas_2d" width="20000" height="300" tabindex="2">Does not support canvas</canvas>
+	NEW PAGE!!
+	<br />
+	<br />
+	Delay: <input type="text" id="delay" value="0.5" /><br />
+	<input type="button" value="OWL" onclick="playSound('owl');" /><br />
+	<input type="button" value="BIRD 1" onclick="playSound('bird1');" /><br />
+	<input type="button" value="BIRD 2" onclick="playSound('bird2');" /><br />
+	<input type="button" value="SWORD" onclick="playSound('sword');" /><br />
+	<input type="button" value="MP3" onclick="playSound('mp3');" /><br />
+	<input type="button" value="Scream" onclick="playSound('Scream');" /><br />
+	<br />
+	
+	<br />Sound Info: <br /><div id="sound_info"></div>
+	<canvas id="canvas_2d" width="20000" height="300" tabindex="2">Does not support canvas</canvas>
 </BODY>
 

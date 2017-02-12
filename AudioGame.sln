@@ -7,20 +7,21 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "AudioGame", ".", "{F4946B7C
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.0"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_57798"
-		Debug.AspNetCompiler.PhysicalPath = "E:\DOCUMENTS\AudioGame\"
+		Debug.AspNetCompiler.PhysicalPath = "..\AudioGame\"
 		Debug.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57798\"
 		Debug.AspNetCompiler.Updateable = "true"
 		Debug.AspNetCompiler.ForceOverwrite = "true"
 		Debug.AspNetCompiler.FixedNames = "false"
 		Debug.AspNetCompiler.Debug = "True"
 		Release.AspNetCompiler.VirtualPath = "/localhost_57798"
-		Release.AspNetCompiler.PhysicalPath = "E:\DOCUMENTS\AudioGame\"
+		Release.AspNetCompiler.PhysicalPath = "..\AudioGame\"
 		Release.AspNetCompiler.TargetPath = "PrecompiledWeb\localhost_57798\"
 		Release.AspNetCompiler.Updateable = "true"
 		Release.AspNetCompiler.ForceOverwrite = "true"
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "57798"
+		SlnRelativePath = "..\AudioGame\"
 	EndProjectSection
 EndProject
 Global
