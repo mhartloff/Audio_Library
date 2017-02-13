@@ -27,6 +27,8 @@
                 
 		function playSound(alias) {
 			var sound = new Sound(WebAudio.get(alias));
+			if (alias == 'bird1')
+				sound.temp = true;
 			sound.play();
 			var div = document.getElementById("sound_info");
 			sound.source.displayInfo(div);
@@ -46,6 +48,8 @@
 	<input type="button" value="SWORD" onclick="playSound('sword');" /><br />
 	<input type="button" value="MP3" onclick="playSound('mp3');" /><br />
 	<input type="button" value="Scream" onclick="playSound('Scream');" /><br />
+	Volume: <input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /><span id="volOutput">1</span><br />
+	Panning: <input type="range" min="-1" max="1" step="0.1" value="0" oninput="getElementById('panOutput').innerText = value; WebAudio.setPan(value);" /><span id="panOutput">0</span><br />
 	<br />
 	
 	<br />Sound Info: <br /><div id="sound_info"></div>

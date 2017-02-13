@@ -1,10 +1,13 @@
 ﻿
 // Library for audio effects playable on a website.
-// Based on: https://www.html5rocks.com/en/tutorials/webaudio/intro/
+// Thanks to: https://www.html5rocks.com/en/tutorials/webaudio/intro/
+
+// --- SOUND --------------------------------------------------------------------------------
 
 function Sound(source) {
 	this.source = source;
 	this.delay = 0.0;		// in seconds
+	this.temp = false;
 }
 
 Sound.prototype.play = function () {
@@ -12,12 +15,26 @@ Sound.prototype.play = function () {
 	var context = WebAudio.context;
 	
 	var source = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
-	source.connect(context.destination);       // connect the source to the context's destination (the speakers)
+		
+	// Run it through the universal gain node
+	var gainNode = WebAudio.gainNode;
+	source.connect(WebAudio.gainNode);
+	var lastNode = gainNode;
+
+	if (!this.temp) {
+		var panNode = WebAudio.panNode;
+		gainNode.connect(WebAudio.panNode);
+		lastNode = panNode;
+	}
+	
+	lastNode.connect(context.destination);       // connect the source to the context's destination (the speakers)
 	source.start(context.currentTime + this.delay);
 }
 
 
-// SoundSource contains the actual data of the sound loaded from the files.
+// --- SOUND SOURCE ------------------------------------------------------------------------- 
+
+// SoundSource contains the actual data of the sound loaded from the files.  To play it, create a Sound object from it.
 function SoundSource(url, alias)  {
     this.url = url;
     this.alias = alias;
@@ -63,31 +80,6 @@ SoundSource.prototype.decode = function () {
         });
 }
 
-// Optionally pass a Canvas2D object to display the channel information.
-SoundSource.prototype.play = function () {
-
-   //if (!this.loaded) {
-   //   console.log("SoundSource " + this.alias + "not yet loaded.");
-   //   return;
-   //}
-	  
-   //var context = WebAudio.context;
-
-   //var delay = Number(document.getElementById("delay").value);
-
-   //var source = new AudioBufferSourceNode(context, { buffer: this.buffer });
-   //source.connect(context.destination);       // connect the source to the context's destination (the speakers)
-    
-   ////var source2 = new AudioBufferSourceNode(context, { buffer: this.buffer });
-   ////source2.connect(context.destination);
-
-   //if (canvas) {
-   //   canvas.setToChannelData(this.buffer.getChannelData(0 /* channel number */));
-   //}
-
-   //source.start(context.currentTime);         // play the source now
-   //source2.start(context.currentTime + delay);    
-}
 
 SoundSource.prototype.displayInfo = function (domElement) {
 
@@ -155,11 +147,14 @@ SoundSource.prototype.drawOnCanvas = function (canvas) {
 	}
 }
 
+// -- WEB AUDIO -------------------------------------------------------------------------------
 
 var WebAudio = 
 {
    context: null,
    soundSourceMap: [],           // Map of sound aliases to SoundSource objects.
+   gainNode: null,
+	panNode: null,
 
    init: function () {
 
@@ -173,6 +168,8 @@ var WebAudio =
          }
       }
       this.context = new AudioContext();
+      this.gainNode = this.context.createGain();
+      this.panNode = this.context.createStereoPanner();
    },
 
    load: function (url, alias) {
@@ -189,13 +186,22 @@ var WebAudio =
    	return source;
    },
 
-   // Play the sound with the passed alias.  
-   play: function (alias) {
-
-   	var source = this.get(alias);
-   	if (source)
-   		source.play();
+	// Generally gain should be between 0 and 1.  If it is higher than 1 the sounds risk being muffled as the waves are multiplied to their maximum aplitude.
+   setGain: function (value) {
+   	this.gainNode.gain.value = value;
    },
+
+	// Panning values between -1 (full left) and 1 (full right).
+   setPan: function (value) {
+   	this.panNode.pan.value = value;
+   },
+
+   // Play the sound with the passed alias.  
+   //play: function (alias) {
+   //	var source = this.get(alias);
+   //	if (source)
+   //		source.play();
+   //},
 
    drawOnCanvas: function (alias, canvas) {
    	var source = this.get(alias);
