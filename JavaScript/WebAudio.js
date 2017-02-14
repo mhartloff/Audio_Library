@@ -8,28 +8,45 @@ function Sound(source) {
 	this.source = source;
 	this.delay = 0.0;		// in seconds
 	this.temp = false;
+	this.gain = 1.0;		// 1 represents no change.  Values above 1 run the risk of distortion.
+	this.balance = -1.0;		// between -1 (L) and 1 (R)
 }
 
 Sound.prototype.play = function () {
 
 	var context = WebAudio.context;
 	
-	var source = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
-		
-	// Run it through the universal gain node
-	var gainNode = WebAudio.gainNode;
-	source.connect(WebAudio.gainNode);
-	var lastNode = gainNode;
+	var sourceNode = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
+	sourceNode.onended = this.onEnded;
+	var lastNode = sourceNode;	
 
-	if (!this.temp) {
-		var panNode = WebAudio.panNode;
-		gainNode.connect(WebAudio.panNode);
-		lastNode = panNode;
+	var self = this;
+	sourceNode.onended = function () {
+		console.log("Sound " + self.source.alias + " has ended.");
 	}
+
+	// Gain
+	if (this.gain != 1.0) {
+		var gainNode = context.createGain();
+		gainNode.gain.value = this.gain;
+		sourceNode.connect(gainNode);
+		lastNode = gainNode;
+	}
+
+	// Balance  (doesn't seem to work.  The context already has a balance node and there must only be one allowed)
+	if (this.balance != 0.0) {
+		var balanceNode = context.createStereoPanner();
+		balanceNode.pan.value = this.balance;
+		lastNode.connect(balanceNode);
+		lastNode = balanceNode;
+	}
+		
+	lastNode.connect(WebAudio.outputNode);
 	
-	lastNode.connect(context.destination);       // connect the source to the context's destination (the speakers)
-	source.start(context.currentTime + this.delay);
+
+	sourceNode.start(context.currentTime + this.delay);
 }
+
 
 
 // --- SOUND SOURCE ------------------------------------------------------------------------- 
@@ -152,10 +169,11 @@ SoundSource.prototype.drawOnCanvas = function (canvas) {
 var WebAudio = 
 {
    context: null,
-   soundSourceMap: [],           // Map of sound aliases to SoundSource objects.
-   gainNode: null,
-	panNode: null,
-
+   soundSourceMap: [],        // Map of sound aliases to SoundSource objects.
+	gainNode: null,
+	balanceNode: null,
+	outputNode: null,				// The last node to attach to a sound.  This node is attached to the output.
+   
    init: function () {
 
       if (!window.AudioContext) {
@@ -169,7 +187,10 @@ var WebAudio =
       }
       this.context = new AudioContext();
       this.gainNode = this.context.createGain();
-      this.panNode = this.context.createStereoPanner();
+		this.balanceNode = this.context.createStereoPanner();
+		this.gainNode.connect(this.balanceNode);
+		this.balanceNode.connect(this.context.destination);
+		this.outputNode = this.gainNode;
    },
 
    load: function (url, alias) {
@@ -188,26 +209,19 @@ var WebAudio =
 
 	// Generally gain should be between 0 and 1.  If it is higher than 1 the sounds risk being muffled as the waves are multiplied to their maximum aplitude.
    setGain: function (value) {
-   	this.gainNode.gain.value = value;
+   	this.gainNode.gain.value = Number(value);
    },
 
 	// Panning values between -1 (full left) and 1 (full right).
-   setPan: function (value) {
-   	this.panNode.pan.value = value;
+   setBalance: function (value) {
+   	this.balanceNode.pan.value = Number(value);
    },
-
-   // Play the sound with the passed alias.  
-   //play: function (alias) {
-   //	var source = this.get(alias);
-   //	if (source)
-   //		source.play();
-   //},
 
    drawOnCanvas: function (alias, canvas) {
    	var source = this.get(alias);
    	if (source)
    		source.drawOnCanvas();
-   }
+   },
 	
 
 }
