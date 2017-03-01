@@ -41,15 +41,33 @@
 	NEW PAGE!!
 	<br />
 	<br />
-	Delay: <input type="text" id="delay" value="0.5" /><br />
+	<!--Delay: <input type="text" id="delay" value="0.5" /><br />-->
 	<input type="button" value="OWL" onclick="playSound('owl');" /><br />
 	<input type="button" value="BIRD 1" onclick="playSound('bird1');" /><br />
 	<input type="button" value="BIRD 2" onclick="playSound('bird2');" /><br />
 	<input type="button" value="SWORD" onclick="playSound('sword');" /><br />
 	<input type="button" value="MP3" onclick="playSound('mp3');" /><br />
 	<input type="button" value="Scream" onclick="playSound('Scream');" /><br />
-	Volume: <input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /><span id="volOutput">1</span><br />
-	Panning: <input type="range" min="-1" max="1" step="0.1" value="0" oninput="getElementById('panOutput').innerText = value; WebAudio.setBalance(value);" /><span id="panOutput">0</span><br />
+
+	<table>
+		<tr><td>Volume:</td>
+			<td><input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /></td>
+			<td><span id="volOutput">1</span></td>
+		</tr>
+		<tr><td>Panning: </td>
+			<td><input type="range" min="-1" max="1" step="0.1" value="0" oninput="getElementById('panOutput').innerText = value; WebAudio.setBalance(value);" /></td>
+			<td><span id="panOutput">0</span></td>
+		</tr>
+		<tr><td>Left Channel Delay: </td>
+			<td><input type="range" min="0.0" max="0.020" step="0.001" value="0.0" oninput="getElementById('leftDelayOutput').innerText = Number(value).toFixed(3); WebAudio.setLeftChannelDelay(value);" /></td>
+			<td><span id="leftDelayOutput">0.000</span> sec</td>
+		</tr>
+		<tr><td>Right Channel Delay: </td>
+			<td><input type="range" min="0.0" max="0.020" step="0.001" value="0.0" oninput="getElementById('rightDelayOutput').innerText = Number(value).toFixed(3); WebAudio.setRightChannelDelay(value);" /></td>
+			<td><span id="rightDelayOutput">0.000</span> sec</td>
+		</tr>
+
+	</table>
 	<br />
 	
 	<br />Sound Info: <br /><div id="sound_info"></div>

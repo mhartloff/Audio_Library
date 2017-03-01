@@ -9,42 +9,44 @@ function Sound(source) {
 	this.delay = 0.0;		// in seconds
 	this.temp = false;
 	this.gain = 1.0;		// 1 represents no change.  Values above 1 run the risk of distortion.
-	this.balance = -1.0;		// between -1 (L) and 1 (R)
+	this.balance = 0.0;		// between -1 (L) and 1 (R)
 }
 
 Sound.prototype.play = function () {
 
 	var context = WebAudio.context;
 	
-	var sourceNode = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
-	sourceNode.onended = this.onEnded;
-	var lastNode = sourceNode;	
+	// Left
+	var gainL = 1.0;
+	var balanceL = -1.0;
+	var delayL = WebAudio.leftChannelDelay;		// Universal delay right now for demonstration.
 
-	var self = this;
-	sourceNode.onended = function () {
-		console.log("Sound " + self.source.alias + " has ended.");
-	}
+	var sourceNodeL = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
+	var gainNodeL = context.createGain();
+	gainNodeL.gain.value = gainL;
+	sourceNodeL.connect(gainNodeL);
+	var balanceNodeL = context.createStereoPanner();
+	balanceNodeL.pan.value = balanceL;
+	gainNodeL.connect(balanceNodeL);
+	balanceNodeL.connect(WebAudio.outputNode);
 
-	// Gain
-	if (this.gain != 1.0) {
-		var gainNode = context.createGain();
-		gainNode.gain.value = this.gain;
-		sourceNode.connect(gainNode);
-		lastNode = gainNode;
-	}
 
-	// Balance  (doesn't seem to work.  The context already has a balance node and there must only be one allowed)
-	if (this.balance != 0.0) {
-		var balanceNode = context.createStereoPanner();
-		balanceNode.pan.value = this.balance;
-		lastNode.connect(balanceNode);
-		lastNode = balanceNode;
-	}
-		
-	lastNode.connect(WebAudio.outputNode);
+	// Right
+	var gainR = 0.99;
+	var balanceR = 1.0;
+	var delayR = WebAudio.rightChannelDelay;
+
+	var sourceNodeR = new AudioBufferSourceNode(context, { buffer: this.source.buffer });
+	var gainNodeR = context.createGain();
+	gainNodeR.gain.value = gainR;
+	sourceNodeR.connect(gainNodeR);
+	var balanceNodeR = context.createStereoPanner();
+	balanceNodeR.pan.value = balanceR;
+	gainNodeR.connect(balanceNodeR);
+	balanceNodeR.connect(WebAudio.outputNode);
 	
-
-	sourceNode.start(context.currentTime + this.delay);
+	sourceNodeL.start(context.currentTime + delayL);
+	sourceNodeR.start(context.currentTime + delayR);
 }
 
 
@@ -140,7 +142,7 @@ SoundSource.prototype.drawOnCanvas = function (canvas) {
 	context.stroke();
 		
 	var numChannels = this.buffer.numberOfChannels;
-	var samplesPerPixel = 2;
+	var samplesPerPixel = 3;
 	for (var i = 0; i < numChannels; i++) {
 		if (i > 1)
 			break;		// no graphical support for greater than 2 channels
@@ -173,6 +175,8 @@ var WebAudio =
 	gainNode: null,
 	balanceNode: null,
 	outputNode: null,				// The last node to attach to a sound.  This node is attached to the output.
+	leftChannelDelay: 0.0,
+	rightChannelDelay: 0.0,
    
    init: function () {
 
@@ -216,6 +220,15 @@ var WebAudio =
    setBalance: function (value) {
    	this.balanceNode.pan.value = Number(value);
    },
+
+	// Set the left channel delay from the right channel, in seconds.
+	setLeftChannelDelay: function (value) {
+		this.leftChannelDelay = Number(value);
+	},
+
+	setRightChannelDelay: function (value) {
+		this.rightChannelDelay = Number(value);
+	},
 
    drawOnCanvas: function (alias, canvas) {
    	var source = this.get(alias);
