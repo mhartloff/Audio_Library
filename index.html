@@ -56,26 +56,8 @@
 						
 			this.waveCanvas = new Canvas2D(document.getElementById("wave_canvas"));
 		}
-                
-		function playSound(alias) {
-			var sound = new Sound(WebAudio.getSoundSource(alias));
-			if (alias == 'bird1')
-			   sound.temp = true;
-			var pos = sceneCanvas.getSelectedPosition();
-			if (!pos) 
-			   pos = new Vector2(Math.random() * 10 - 5, Math.random() * 10 - 5);
-			sound.setPosition(pos.x, 0.0, pos.y);
-         sound.setRepeat(document.getElementById("repeatSound").checked);
-			sound.play();
-			var div = document.getElementById("sound_info");
-			sound.source.displayInfo(div);
-			sound.source.drawWaveOnCanvas(this.waveCanvas);
-
-			
-                  
-			document.getElementById("testOutput").innerText = WebAudio.context.createChannelMerger(2).toString();
-		}
-
+               
+		
       // Playing with local storage here...
 		//localStorage.setItem("lastPlayed", alias);
       //var lastPlayed = localStorage.getItem("lastPlayed");
