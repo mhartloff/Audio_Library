@@ -2,27 +2,157 @@
 
 function Canvas2D(canvasElement) {
 
-    this.domElement = canvasElement;
-    this.width = canvasElement.width;
-    this.height = canvasElement.height;
-    this.context = canvasElement.getContext('2d');
+	var self = this;
 
-  
-    
-    var self = this;
-    //setInterval(function () { self.redraw(); }, 100);
+   this.domElement = canvasElement;
+   this.width = canvasElement.width;
+   this.height = canvasElement.height;
+   this.context = canvasElement.getContext('2d');
+   this.context.font = "12px Arial";
+   this.invertY = false;
+
+   this.selectedPos = null;		// The last position selected by the user, in scene space.
+
+   canvasElement.onmousedown = function (ev) { self._onMouseDown(ev); };
+   canvasElement.onmouseup = function (ev) { self._onMouseUp(ev); }
+   document.addEventListener('mousemove', function (ev) { self._onMouseMove(ev); }, false);
+   canvasElement.addEventListener('keydown', function (ev) { self.onKeyDown(ev); }, false);
+   canvasElement.oncontextmenu = function (ev) { return false; };		// Disable right-click context menu
+   
+	// Callbacks that can be set.  Returns the coord of the event in scene space.
+   this.onMouseDown = null;		// function (x, y)
+   this.onMouseUp = null;			// function (x, y)
+   this.onMouseMove = null;		// function (x, y)
+	
+	// The bottom left in projection coordinate system.  Note that the y is inverted so the bottom is the lowest y.
+	this.xLeft = 0;	 
+	this.yBottom = 0;
+	this.pixelsPerUnit = 1;
+	
+   // var self = this;
+   // setInterval(function () { self.redraw(); }, 100);
 }
 
-Canvas2D.prototype.redraw = function()
-{
-    // clear the canvas
-    var context = this.context;
-    context.fillStyle = "white";
-    context.fillRect(0, 0, this.width, this.height);
-
-    
+Canvas2D.prototype.clear = function (color)  {
+	// clear the canvas
+	var context = this.context;
+	context.fillStyle = color;
+	context.fillRect(0, 0, this.width, this.height);
 }
 
-Canvas2D.prototype.setToChannelData = function (channelData) {
-    
+Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit) {
+	this.xLeft = xCenter - (this.width / 2.0 / pixelsPerUnit);
+	this.yBottom = yCenter - (this.height / 2.0 / pixelsPerUnit);
+	this.pixelsPerUnit = pixelsPerUnit;
+}
+
+Canvas2D.prototype.clientToCanvas = function (clientX, clientY) {
+	var rect = this.domElement.getBoundingClientRect();
+	return {
+		x: clientX - rect.left,
+		y: clientY - rect.top
+	};
+}
+
+// Converts client coordinates generally returned by the event objects to the projection coordinates.
+Canvas2D.prototype.clientToScene = function (clientX, clientY) {
+	var p = this.clientToCanvas(clientX, clientY);
+	return this.canvasToScene(p.x, p.y);
+}
+
+// Transform a 2D point from scene space to pixel space for drawing.
+Canvas2D.prototype.sceneToCanvas = function (x, y) {
+	var p = {
+		x: ((x - this.xLeft) * this.pixelsPerUnit),
+		y: ((y - this.yBottom) * this.pixelsPerUnit)
+	};
+	if (this.invertY)
+		p.y = this.height - p.y;
+	return p;
+}
+
+Canvas2D.prototype.canvasToScene = function (x, y) {
+	if (this.invertY)
+		y = this.height - y;
+	return {
+		x: x / this.pixelsPerUnit + this.xLeft,
+		y: y / this.pixelsPerUnit + this.yBottom
+	};
+}
+
+// Only forwards the message if it is within the canvas element.
+Canvas2D.prototype._onMouseDown = function (ev) {
+
+	var p = this.clientToScene(ev.x, ev.y);
+	this.selectedPos = p;
+
+	if (this.onMouseDown)
+		this.onMouseDown(p.x, p.y);
+}
+
+Canvas2D.prototype._onMouseUp = function (ev) {
+
+	var p = this.clientToScene(ev.x, ev.y);
+
+	if (this.onMouseUp)
+		this.onMouseUp(p.x, p.y);
+}
+
+Canvas2D.prototype._onMouseMove = function (ev) {
+
+	var p = this.clientToCanvas(ev.x, ev.y);
+		
+	if (p.x >= 0 && p.x < this.width &&
+		 p.y >= 0 && p.y < this.height) {
+		var s = this.canvasToScene(p.x, p.y);
+
+		if (this.onMouseMove)
+			this.onMouseMove(s.x, s.y);
+	}
+}
+
+Canvas2D.prototype.onKeyDown = function (ev) {
+
+	//var p = clientToScene(ev.x, ev.y);
+}
+
+
+// Coordinates are in local projection coordinates.
+Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {
+
+	var start = this.sceneToCanvas(x1, y1);
+	var end = this.sceneToCanvas(x2, y2);
+	this.context.strokeStyle = color;
+	this.context.beginPath();
+	this.context.moveTo(start.x, start.y);
+	this.context.lineTo(end.x, end.y);
+	this.context.stroke();
+}
+
+Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor) {
+
+	var context = this.context;
+	var p = this.sceneToCanvas(x, y);
+	
+	context.beginPath();
+	context.arc(p.x, p.y,radius, 0 /* start angle */, 2 * Math.PI /* end angle */); 
+
+	
+	if (fillColor)  {
+		context.fillStyle = fillColor;
+		context.fill();
+	}
+	if (outlineColor) {
+		context.strokeStyle = outlineColor;
+		context.stroke();
+	}
+}
+
+Canvas2D.prototype.drawText = function (text, x, y, color) {
+
+	var p = this.sceneToCanvas(x, y);
+	this.context.textAlign = "left";
+	
+	this.context.fillStyle = color ? color : "rgb(0, 0, 0)";
+	this.context.fillText(text, p.x, p.y);
 }

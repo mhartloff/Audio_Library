@@ -4,73 +4,125 @@
 </HEAD>
 <BODY onload="onLoad();">
 
-	<script src="Javascript/WebAudio.js"></script>
-	<script src="Javascript/Canvas2D.js"></script>
+   <script src="JavaScript/Common/Utils.js"></script>
+   <script src="JavaScript/Common/DeviceMotion.js"></script>
 
+	<script src="JavaScript/Canvas2D.js"></script>
+   <script src="JavaScript/WebAudio.js"></script>
+   <script src="JavaScript/Sound.js"></script>
+   <script src="JavaScript/SpatialSound.js"></script>
+   <script src="JavaScript/PannerSound.js"></script>
+   <script src="JavaScript/Scene.js"></script>
+   <script src="JavaScript/SceneObject.js"></script>
+   <script src="JavaScript/EarInfo.js"></script>
+	
 	<script>
-		var canvas = null;
+		var waveCanvas = null;
+		
+		var scene = null;
+		var bird = null;
+		var aceOfBass = null;
 
 		function onLoad() {
-			WebAudio.init();
-			WebAudio.load("Sounds/owl.wav", "owl");
-			WebAudio.load("Sounds/bird1.wav", "bird1");
-			WebAudio.load("Sounds/bird2.wav", "bird2");
-			WebAudio.load("Sounds/sword.wav", "sword");
-			WebAudio.load("Sounds/AnMP3.mp3", "mp3");
-			WebAudio.load("Sounds/Scream.wav", "Scream");
-			//WebAudio.load("Sounds/Laugh.wav", "Laugh");
-			//WebAudio.load("Sounds/Talking.wav", "Talking");
 
-			this.canvas = new Canvas2D(document.getElementById("canvas_2d"));
+		   DeviceMotion.init();
+		   WebAudio.init();
+			WebAudio.loadSoundSource("Sounds/Owl.wav", "owl");
+			WebAudio.loadSoundSource("Sounds/Bird1.wav", "bird1");
+			WebAudio.loadSoundSource("Sounds/Bird2.wav", "bird2");
+			WebAudio.loadSoundSource("Sounds/Sword.wav", "sword");
+			WebAudio.loadSoundSource("Sounds/beautiful_life.wav", "aceOfBass");
+			WebAudio.loadSoundSource("Sounds/Scream.wav", "Scream");
 
+			this.scene = new Scene();
+			this.scene.setCanvas(document.getElementById("scene_canvas"));
+		
+			this.bird = new SceneObject(WebAudio.getSoundSource("bird1"),
+         {
+            position: new Vector(3, 0, 0),
+            soundType: 1,  // panner nodes
+            alias: 'Birdy'
+         });
+
+			this.aceOfBass = new SceneObject(WebAudio.getSoundSource("aceOfBass"),
+         {
+            position: new Vector(-3, 0, 0),
+            soundType: 1,
+            alias: 'Ace of Bass'
+         });
+
+			this.scene.addObject(this.bird);
+			this.scene.addObject(this.aceOfBass);
+						
+			this.waveCanvas = new Canvas2D(document.getElementById("wave_canvas"));
 		}
                 
 		function playSound(alias) {
-			var sound = new Sound(WebAudio.get(alias));
+			var sound = new Sound(WebAudio.getSoundSource(alias));
 			if (alias == 'bird1')
-				sound.temp = true;
+			   sound.temp = true;
+			var pos = sceneCanvas.getSelectedPosition();
+			if (!pos) 
+			   pos = new Vector2(Math.random() * 10 - 5, Math.random() * 10 - 5);
+			sound.setPosition(pos.x, 0.0, pos.y);
+         sound.setRepeat(document.getElementById("repeatSound").checked);
 			sound.play();
 			var div = document.getElementById("sound_info");
 			sound.source.displayInfo(div);
-			sound.source.drawOnCanvas(this.canvas);
+			sound.source.drawWaveOnCanvas(this.waveCanvas);
+
 			
+                  
+			document.getElementById("testOutput").innerText = WebAudio.context.createChannelMerger(2).toString();
 		}
 
+      // Playing with local storage here...
+		//localStorage.setItem("lastPlayed", alias);
+      //var lastPlayed = localStorage.getItem("lastPlayed");
+      //document.getElementById("lastPlayed").innerText = lastPlayed ? lastPlayed : "none";
+
+		
 	</script>
     
-	NEW PAGE!!
-	<br />
-	<br />
-	<!--Delay: <input type="text" id="delay" value="0.5" /><br />-->
-	<input type="button" value="OWL" onclick="playSound('owl');" /><br />
-	<input type="button" value="BIRD 1" onclick="playSound('bird1');" /><br />
-	<input type="button" value="BIRD 2" onclick="playSound('bird2');" /><br />
-	<input type="button" value="SWORD" onclick="playSound('sword');" /><br />
-	<input type="button" value="MP3" onclick="playSound('mp3');" /><br />
-	<input type="button" value="Scream" onclick="playSound('Scream');" /><br />
+	<h3>Web Audio API Demo</h3>
 
+   <h5>Motion</h5>
+   <div id="deviceMotionOutput"></div>
 	<table>
 		<tr><td>Volume:</td>
 			<td><input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /></td>
 			<td><span id="volOutput">1</span></td>
 		</tr>
-		<tr><td>Panning: </td>
-			<td><input type="range" min="-1" max="1" step="0.1" value="0" oninput="getElementById('panOutput').innerText = value; WebAudio.setBalance(value);" /></td>
-			<td><span id="panOutput">0</span></td>
+      <tr><td>HeadWidth:</td>
+         <td><input type="range" min="0" max="20" step="1" value="8" oninput="getElementById('headOutput').innerText = value; EarInfo.earDistance = value / 39.3; scene.updateEarInfo();" /></td>
+			<td><span id="headOutput">8</span></td>
 		</tr>
-		<tr><td>Left Channel Delay: </td>
-			<td><input type="range" min="0.0" max="0.020" step="0.001" value="0.0" oninput="getElementById('leftDelayOutput').innerText = Number(value).toFixed(3); WebAudio.setLeftChannelDelay(value);" /></td>
-			<td><span id="leftDelayOutput">0.000</span> sec</td>
+      <tr><td>Gain Change:</td>
+         <td><input type="range" min="0" max="1.0" step=".05" value="0.4" oninput="getElementById('gainOutput').innerText = value; EarInfo.attenAmount = 0.4; scene.updateEarInfo();" /></td>
+			<td><span id="gainOutput">0.4</span></td>
 		</tr>
-		<tr><td>Right Channel Delay: </td>
-			<td><input type="range" min="0.0" max="0.020" step="0.001" value="0.0" oninput="getElementById('rightDelayOutput').innerText = Number(value).toFixed(3); WebAudio.setRightChannelDelay(value);" /></td>
-			<td><span id="rightDelayOutput">0.000</span> sec</td>
-		</tr>
-
 	</table>
-	<br />
-	
-	<br />Sound Info: <br /><div id="sound_info"></div>
-	<canvas id="canvas_2d" width="20000" height="300" tabindex="2">Does not support canvas</canvas>
+	<br>
+    
+   <input type="button" value="BIRDY" onclick="bird.play();" />
+   <input type="button" value="ACE OF BASS" onclick="aceOfBass.play();" /><br><br>
+
+   <!--<input type="button" value="OWL" onclick="playSound('owl');" />
+   
+	<input type="button" value="BIRD 2" onclick="bird.play();" />
+	<input type="button" value="SWORD" onclick="playSound('sword');" />
+	<input type="button" value="Scream" onclick="playSound('Scream');" /><br />
+   Repeat: <input type="checkbox" id="repeatSound" /><br>
+   <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
+   <input type="button" value="TEST" onclick="DeviceMotion.updateMatrices();" /><br />-->
+   	
+	Position Info (+Y comes out of the screen) <br>
+	<canvas id="scene_canvas" width="450" height="450"></canvas>
+
+	<h4>Sound Info </h4><div id="sound_info"></div>
+	<canvas id="wave_canvas" width="800" height="300" tabindex="1"></canvas><br>
+
+   Test: <span id="testOutput"></span><br>
+   Last Played: <span id="lastPlayed"></span><br><br>
 </BODY>
 
