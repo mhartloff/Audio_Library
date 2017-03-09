@@ -9,7 +9,7 @@ function Sound (source) {
 	this.onEnded = null;		// Callback function when the sound ends
 	
 	var self = this;
-	this.sourceNode = new AudioBufferSourceNode(WebAudio.context);
+	this.sourceNode = WebAudio.context.createBufferSource();
 	this.sourceNode.buffer = this.source.buffer;
 	this.sourceNode.loop = this.repeat;
 	this.sourceNode.onended = function () {
