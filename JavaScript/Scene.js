@@ -23,7 +23,7 @@ function Scene() {
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
 	
 	// Subscribe to orientation messages sent from devices like a phone.
-	this.usePhoneOrientation = false;	
+	this.usePhoneOrientation = true;	
 	if (this.usePhoneOrientation)
 		DeviceMotion.subscribe(this);
 }
@@ -64,6 +64,7 @@ Scene.prototype.setPosition = function (xOrVec, y /* opt */, z /* opt */) {
 	this.position.set(xOrVec, y, z);
 	this.listener.setPosition(this.position.x, this.position.y, this.position.z);
 	this.updateEarInfo();
+	this.needsRedraw = true;
 }
 
 // The orientation of the listener.  X-Axis is left, Y-Axis is Up, Z-Axis is forward.
@@ -73,6 +74,7 @@ Scene.prototype.setOrientation = function (orientation /* Matrix */) {
 	// [forward.x, forward.y, forward.z, up.x, up.y, up.z]
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
 	this.updateEarInfo();
+	this.needsRedraw = true;
 }
 
 Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */, zAxis /* forward */) {
@@ -80,6 +82,7 @@ Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */,
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
 	this.updateEarInfo();
+	this.needsRedraw = true;
 }
 
 // Add an object to the scene
@@ -98,7 +101,7 @@ Scene.prototype.removeObject = function (sceneObject) {
 
 // Callback from the DeviceMotion object
 Scene.prototype.onMotionUpdate = function () {
-	this.setOrientationAxes(DeviceMotion.getLeftVec(), DeviceMotion.getUpVec(), DeviceMotion.getForwardVec());
+	this.setOrientationAxes(DeviceMotion.getLeftVec(), DeviceMotion.getForwardVec(), DeviceMotion.getOutVec());
 }
 
 Scene.prototype.stopAllSounds = function () {

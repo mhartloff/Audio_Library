@@ -59,41 +59,47 @@ SceneObject.prototype.setDirection = function (dir) {
 
 SceneObject.prototype.play = function (repeat) {
 
-	var newSound = null;
-	switch (this.soundType) {
-		case 0: {
-			newSound = new Sound(this.soundSource);
-			break;
+	try {
+
+		var newSound = null;
+		switch (this.soundType) {
+			case 0: {
+				newSound = new Sound(this.soundSource);
+				break;
+			}
+			case 1: {
+				newSound = new PannerSound(this.soundSource);
+				break;
+			}
+			case 2: {
+				newSound = new SpatialSound(this.soundSource, this.scene.earInfo);
+				break;
+			}
+			default: {
+				console.log("Unknown sound type");
+				return;
+			}
 		}
-		case 1: {
-			newSound = new PannerSound(this.soundSource);
-			break;
-		}
-		case 2: {
-			newSound = new SpatialSound(this.soundSource, this.scene.earInfo);
-			break;
-		}
-		default: {
-			console.log("Unknown sound type");
-			return;
-		}
+
+		var self = this;
+		newSound.onEnded = function (sound) { self.onEnded(sound); }
+		newSound.setRepeat(repeat !== undefined ? repeat : false);
+
+		// Update the sound if it has location specific functionality
+		if (newSound.setLocation)
+			newSound.setLocation(this.position, this.direction);
+
+		newSound.play();
+		this.isPlaying = true;
+
+		this.sounds.push(newSound);
+
+		if (this.scene)
+			this.scene.needsRedraw = true;
 	}
-
-	var self = this;
-	newSound.onEnded = function (sound) { self.onEnded(sound); }
-	newSound.setRepeat(repeat !== undefined ? repeat : false);
-
-	// Update the sound if it has location specific functionality
-	if (newSound.setLocation)
-		newSound.setLocation(this.position, this.direction);
-
-	newSound.play();
-	this.isPlaying = true;
-
-	this.sounds.push(newSound);
-
-	if (this.scene)
-		this.scene.needsRedraw = true;
+	catch (e) {
+		alert(e.message);
+	}
 }
 
 SceneObject.prototype.stop = function () {

@@ -28,12 +28,12 @@ var DeviceMotion =
 		}
 
 		this.statusElement = document.getElementById("deviceMotionOutput");
-		this.lastTick = Math.round(Date.now() / this.updateCallbackFreq);	
+		this.lastTick = Math.round(Date.now() / this.callbackFreq);	
 		this.updateStatus();
 	},
 
 	// The direction pointing out the left side of the phone
-	getXVec: function () {
+	getLeftVec: function () {
 		return this.curMatrix.getXAxisH();
 	},
 
@@ -49,7 +49,10 @@ var DeviceMotion =
 
 	// The passed object recieves notifications when the orientation has changed.
 	subscribe: function (obj) {
-		this.subscribers.push(obj);
+		if (!obj.onMotionUpdate)
+			console.out("Motion subscriber must have implemented onMotionUpdate()!")
+		else
+			this.subscribers.push(obj);
 	},
 
 	unsubscribe: function (obj) {
@@ -68,19 +71,17 @@ var DeviceMotion =
 						 "Interval: " + this.interval + "<br>" +
 						 "Forward: " + this.getForwardVec().toString(2) + "<br>" +
 						 "Out: " + this.getOutVec().toString(2) + "<br>" +
-						 "X: " + this.getXVec().toString(2) + "<br>" +
+						 "Left: " + this.getLeftVec().toString(2) + "<br>" +
 						 "Upside Down: " + this.upsideDown;
 					
 			this.statusElement.innerHTML = msg;
 		}
 
 		// Notify subscribes if enough time has passed.
-		var thisTick = Math.round(Date.now() / this.updateCallbackFreq);
+		var thisTick = Math.round(Date.now() / this.callbackFreq);
 		if (thisTick > this.lastTick) {
 			this.lastTick = thisTick;
 			for (var i = 0; i < this.subscribers.length; i++) {
-				if (!this.subscribers[i].motionUpdate)
-					console.log("Motion subscriber does not have motionUpdate()!")
 				this.subscribers[i].onMotionUpdate();
 			}
 		}
@@ -101,11 +102,7 @@ var DeviceMotion =
 		rotMatrix.applyToVec(xVec);
 		xVec.normalize();		// Should have done nothing
 
-		this.upsideDown = Math.abs(this.pitch) > 90;
-		//if (this.upsideDown)
-		//	outVec = xVec.cross(forwardVec);
-		//else
-			outVec = forwardVec.cross(xVec);
+		outVec = forwardVec.cross(xVec);
 		this.curMatrix.setAxes(xVec, outVec, forwardVec);
 
 		if (!this.origMatrix)
