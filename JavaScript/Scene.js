@@ -17,7 +17,7 @@ function Scene() {
 	this.selectedObject = null;
 
 	var self = this;
-	setInterval(function () { self.redraw(); }, 100);	// Fire an event to redraw 10/sec
+	this.intervalID = setInterval(function () { self.redraw(); }, 100);	// Fire an event to redraw 10/sec
 
 	this.nextID = 0;	
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
@@ -26,6 +26,10 @@ function Scene() {
 	this.usePhoneOrientation = true;	
 	if (this.usePhoneOrientation)
 		DeviceMotion.subscribe(this);
+}
+
+Scene.prototype.destroy = function () {
+	clearInterval(this.intervalID);
 }
 
 Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {

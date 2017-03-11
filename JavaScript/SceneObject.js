@@ -7,13 +7,15 @@ function SceneObject(soundSource /* SoundSource */, options)  {
 	this.position = new Vector(0, 0, 1);
 	this.direction = new Vector(0, 0, 1);
 	this.alias = null;	// A text string for casual identification
-	this.soundType = this.soundTypeEnum['spatial'];
+	this.soundType = SceneObject.SoundTypeEnum['panner'];
+	this.soundOptions = null;		// A canvas to output information about the sound playing, if the sound supports it.
 
 	if (options) {
 		if (options.position) this.position = options.position.clone();
 		if (options.direction) this.direction = options.direction.clone();
 		if (options.alias) this.alias = options.alias;
 		if (options.soundType !== undefined) this.soundType = options.soundType;
+		if (options.soundOptions != undefined) this.soundOptions = options.soundOptions;
 	}
 
 	this.scene = null;	// populated when/if it is added to a scene.
@@ -23,7 +25,7 @@ function SceneObject(soundSource /* SoundSource */, options)  {
 	this.isPlaying = false;
 }
 
-SceneObject.prototype.soundTypeEnum = { normal: 0, panner: 1, spatial: 2 };
+SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3 };	
 
 SceneObject.prototype.setAlias = function (alias /*String */) {
 	this.alias = alias;
@@ -59,7 +61,7 @@ SceneObject.prototype.setDirection = function (dir) {
 
 SceneObject.prototype.play = function (repeat) {
 
-	try {
+	//try {
 
 		var newSound = null;
 		switch (this.soundType) {
@@ -73,6 +75,10 @@ SceneObject.prototype.play = function (repeat) {
 			}
 			case 2: {
 				newSound = new SpatialSound(this.soundSource, this.scene.earInfo);
+				break;
+			}
+			case 3: {
+				newSound = new TestSound(this.soundSource, this.soundOptions);
 				break;
 			}
 			default: {
@@ -96,10 +102,10 @@ SceneObject.prototype.play = function (repeat) {
 
 		if (this.scene)
 			this.scene.needsRedraw = true;
-	}
-	catch (e) {
-		alert(e.message);
-	}
+	//}
+	//catch (e) {
+	//	alert(e.message);
+	//}
 }
 
 SceneObject.prototype.stop = function () {

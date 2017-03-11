@@ -5,8 +5,8 @@ function Canvas2D(canvasElement) {
 	var self = this;
 
    this.domElement = canvasElement;
-   this.width = canvasElement.width;
-   this.height = canvasElement.height;
+   this.width = canvasElement.width;		// Width in pixels
+   this.height = canvasElement.height;		// Height in pixels
    this.context = canvasElement.getContext('2d');
    this.context.font = "12px Arial";
    this.invertY = false;
@@ -26,11 +26,8 @@ function Canvas2D(canvasElement) {
 	
 	// The bottom left in projection coordinate system.  Note that the y is inverted so the bottom is the lowest y.
 	this.xLeft = 0;	 
-	this.yBottom = 0;
+	this.yLow = 0;			// Either the top if 'invertY' is false or the bottom if it is true.
 	this.pixelsPerUnit = 1;
-	
-   // var self = this;
-   // setInterval(function () { self.redraw(); }, 100);
 }
 
 Canvas2D.prototype.clear = function (color)  {
@@ -40,10 +37,41 @@ Canvas2D.prototype.clear = function (color)  {
 	context.fillRect(0, 0, this.width, this.height);
 }
 
-Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit) {
+Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit, invertY) {
 	this.xLeft = xCenter - (this.width / 2.0 / pixelsPerUnit);
-	this.yBottom = yCenter - (this.height / 2.0 / pixelsPerUnit);
+	this.yLow = yCenter - (this.height / 2.0 / pixelsPerUnit);
 	this.pixelsPerUnit = pixelsPerUnit;
+	this.invertY = invertY ? false : invertY;
+}
+
+Canvas2D.prototype.setProjectionFromTopLeft = function (xLeft, yTop, pixelsPerUnit) {
+	this.xLeft = xLeft;
+	this.yLow = yTop;
+	this.pixelsPerUnit = pixelsPerUnit;
+	this.invertY = false;
+}
+
+Canvas2D.prototype.setProjectionFromBottomLeft = function (xLeft, yBottom, pixelsPerUnit) {
+	this.xLeft = xLeft;
+	this.yLow = yBottom;
+	this.pixelsPerUnit = pixelsPerUnit;
+	this.invertY = true;
+}
+
+Canvas2D.prototype.getTopY = function () {
+	return this.canvasToScene(0, 0).y;
+}
+
+Canvas2D.prototype.getBottomY = function () {
+	return this.canvasToScene(0, this.height).y;
+}
+
+Canvas2D.prototype.getLeftX = function () {
+	return this.canvasToScene(0, 0).x;
+}
+
+Canvas2D.prototype.getRightX = function () {
+	return this.canvasToScene(this.width, 0).x;
 }
 
 Canvas2D.prototype.clientToCanvas = function (clientX, clientY) {
@@ -62,12 +90,13 @@ Canvas2D.prototype.clientToScene = function (clientX, clientY) {
 
 // Transform a 2D point from scene space to pixel space for drawing.
 Canvas2D.prototype.sceneToCanvas = function (x, y) {
+	
 	var p = {
 		x: ((x - this.xLeft) * this.pixelsPerUnit),
-		y: ((y - this.yBottom) * this.pixelsPerUnit)
+		y: ((y - this.yLow) * this.pixelsPerUnit)
 	};
 	if (this.invertY)
-		p.y = this.height - p.y;
+		p.y = this.height - p.y;		// It's actually 'this much from the bottom' in the inversion case.
 	return p;
 }
 
@@ -76,7 +105,7 @@ Canvas2D.prototype.canvasToScene = function (x, y) {
 		y = this.height - y;
 	return {
 		x: x / this.pixelsPerUnit + this.xLeft,
-		y: y / this.pixelsPerUnit + this.yBottom
+		y: y / this.pixelsPerUnit + this.yLow
 	};
 }
 
@@ -129,6 +158,7 @@ Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {
 	this.context.stroke();
 }
 
+// Draw a circle.  If outlineColor or fillColor are null, do not draw those.  x and y are in scene coordinates.
 Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor) {
 
 	var context = this.context;
@@ -145,6 +175,24 @@ Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor)
 	if (outlineColor) {
 		context.strokeStyle = outlineColor;
 		context.stroke();
+	}
+}
+
+// Draw a rectangle.  If outlineColor or fillColor are null, do not draw those.  x and y are in scene coordinates.
+Canvas2D.prototype.drawRectangle = function (x, y, width, height, outlineColor, fillColor) {
+	var context = this.context;
+	var p = this.sceneToCanvas(x, y);
+	var h = height * this.pixelsPerUnit;	// Convert to canvas space
+	if (this.invertY)
+		h = -h;
+
+	if (fillColor)  {
+		context.fillStyle = fillColor;
+		context.fillRect(p.x, p.y, width * this.pixelsPerUnit, h);
+	}
+	if (outlineColor) {
+		context.strokeStyle = outlineColor;
+		context.strokeRect(p.x, p.y, width * this.pixelsPerUnit, h);
 	}
 }
 

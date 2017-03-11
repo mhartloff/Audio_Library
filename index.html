@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <HEAD>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> Audio Test</title>
 </HEAD>
 <BODY onload="onLoad();">
@@ -12,6 +13,7 @@
    <script src="JavaScript/Sound.js"></script>
    <script src="JavaScript/SpatialSound.js"></script>
    <script src="JavaScript/PannerSound.js"></script>
+	<script src="JavaScript/TestSound.js"></script>
    <script src="JavaScript/Scene.js"></script>
    <script src="JavaScript/SceneObject.js"></script>
    <script src="JavaScript/EarInfo.js"></script>
@@ -22,6 +24,7 @@
 		var scene = null;
 		var bird = null;
 		var aceOfBass = null;
+		var testSound = null;
 
 		function onLoad() {
 
@@ -33,6 +36,7 @@
 			WebAudio.loadSoundSource("Sounds/Sword.wav", "sword");
 			WebAudio.loadSoundSource("Sounds/beautiful_life.wav", "aceOfBass");
 			WebAudio.loadSoundSource("Sounds/Scream.wav", "Scream");
+			WebAudio.loadSoundSource("Sounds/1000htz.wav", "1000htz");
 
 			this.scene = new Scene();
 			this.scene.setCanvas(document.getElementById("scene_canvas"));
@@ -40,21 +44,29 @@
 			this.bird = new SceneObject(WebAudio.getSoundSource("bird1"),
          {
             position: new Vector(3, 0, 0),
-            soundType: 1,  // panner nodes
+            soundType: SceneObject.SoundTypeEnum.panner,
             alias: 'Birdy'
          });
 
 			this.aceOfBass = new SceneObject(WebAudio.getSoundSource("aceOfBass"),
          {
             position: new Vector(-3, 0, 0),
-            soundType: 1,
+            soundType: SceneObject.SoundTypeEnum.panner,
             alias: 'Ace of Bass'
          });
 
+			this.testSound = new SceneObject(WebAudio.getSoundSource("1000htz"),
+			{
+				position: new Vector(0, 0, -3),
+				soundType: SceneObject.SoundTypeEnum.test,
+				soundOptions: { outputCanvas: document.getElementById("analysis_canvas_1"),
+									mod: false },
+				alias: 'Test'
+			});
+
 			this.scene.addObject(this.bird);
 			this.scene.addObject(this.aceOfBass);
-						
-			this.waveCanvas = new Canvas2D(document.getElementById("wave_canvas"));
+			this.scene.addObject(this.testSound);
 		}
                
 		
@@ -87,8 +99,9 @@
 	<br>
     
    <input type="button" value="BIRDY" onclick="bird.play();" />
-   <input type="button" value="ACE OF BASS" onclick="aceOfBass.play();" /><br><br>
-      
+   <input type="button" value="ACE OF BASS" onclick="aceOfBass.play();" />
+   <input type="button" value="TEST" onclick="testSound.play(); " /><br /><br>
+	   
    <!--<input type="button" value="OWL" onclick="playSound('owl');" />
    
 	<input type="button" value="BIRD 2" onclick="bird.play();" />
@@ -96,15 +109,13 @@
 	<input type="button" value="Scream" onclick="playSound('Scream');" /><br /> 
    Repeat: <input type="checkbox" id="repeatSound" /><br>  -->
    <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
-   <input type="button" value="TEST" onclick="DeviceMotion.updateMatrices();" /><br />
    
-   	
+   <h4>Sound Info </h4><div id="sound_info"></div>
+	<canvas id="analysis_canvas_1" width="512" height="500" tabindex="1"></canvas><br>
+		
 	Position Info (+Y comes out of the screen) <br>
 	<canvas id="scene_canvas" width="450" height="450"></canvas>
-
-	<h4>Sound Info </h4><div id="sound_info"></div>
-	<canvas id="wave_canvas" width="800" height="300" tabindex="1"></canvas><br>
-
+		
    Test: <span id="testOutput"></span><br>
    Last Played: <span id="lastPlayed"></span><br><br>
 </BODY>

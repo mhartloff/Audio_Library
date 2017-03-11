@@ -8,16 +8,21 @@ function Sound (source) {
 	
 	this.onEnded = null;		// Callback function when the sound ends
 	
+	this.sourceNode = this.createSourceNode();
+}
+
+Sound.prototype.createSourceNode = function () {
 	var self = this;
-	this.sourceNode = WebAudio.context.createBufferSource();
-	this.sourceNode.buffer = this.source.buffer;
-	this.sourceNode.loop = this.repeat;
-	this.sourceNode.onended = function () {
+	sourceNode = WebAudio.context.createBufferSource();
+	sourceNode.buffer = this.source.buffer;
+	sourceNode.loop = this.repeat;
+	sourceNode.onended = function () {
 		if (self._onEnded)
 			self._onEnded();	// Allow the sound to clean itself up.
 		if (self.onEnded)
 			self.onEnded(self);
 	}
+	return sourceNode;
 }
 
 Sound.prototype.getSourceNode = function () {
