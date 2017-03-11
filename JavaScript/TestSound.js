@@ -33,7 +33,7 @@ function TestSound (source, options /* HTML Canvas */) {
 	if (this.outputCanvas) {
 		this.outputCanvas.setProjectionFromBottomLeft(0, 0, this.outputCanvas.width);		// Create coord system where the left = 0 and right = 1.
 		var self = this;
-		this.intervalID = setInterval(function () { self.redraw(); }, 50);	// Fire an event to redraw 10/sec
+		this.intervalID = setInterval(function () { self.redraw(); }, 60);	// Fire an event to redraw 10/sec
 	}
 }
 TestSound.prototype = Object.create(Sound.prototype);
@@ -103,8 +103,8 @@ TestSound.prototype.redraw = function () {
 	var height = canvas.getTopY();
 	canvas.clear('rgb(200, 200, 200)');
 		
-	var outlineColor = "rgb(30, 30, 30)";
-	var fillColor = 'rgb(50, 50, 240)';
+	var outlineColor = null;
+	var fillColor = 'rgb(150, 150, 240)';
 
 	var size = this.analyzerNode1.frequencyBinCount;
 	var dataArray1 = new Uint8Array(size);
@@ -115,10 +115,16 @@ TestSound.prototype.redraw = function () {
 	this.analyzerNode2.getByteTimeDomainData(dataArray2);
 
 	var dataArray3 = new Uint8Array(size);
-	for (var i = 0; i < dataArray1.length; i++)
+	var d1Max = 0;
+	var d2Max = 0;
+	for (var i = 0; i < dataArray1.length; i++) {
+		if (dataArray1[i] > d1Max)
+			d1Max = dataArray1[i];
+		if (dataArray2[i] > d2Max)
+			d2Max = dataArray2[i];
 		dataArray3[i] = dataArray2[i] - dataArray1[i] + 128;
-	
-	
+	}
+		
 	var drawData = function (data, startY, height) {
 		for (var i = 0; i < data.length; i++) {
 			canvas.drawRectangle(barWidth * i, // x
@@ -131,8 +137,14 @@ TestSound.prototype.redraw = function () {
 
 
 	drawData(dataArray1, height / 3 * 2, height / 3);
+	canvas.drawText(d1Max - 128, 0.05, height / 3 * 2);
+
 	drawData(dataArray2, height / 3 * 1, height / 3);
+	canvas.drawText(d2Max - 128, 0.05, height / 3 * 1);
+
 	drawData(dataArray3, height / 3 * 0, height / 3);
+	var val = ((d1Max - d2Max) / (d2Max - 128) * 100.0).toFixed(0);
+	canvas.drawText(val + "%", 0.05, height / 3 * 0);
 
 	
 
