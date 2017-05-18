@@ -75,6 +75,7 @@ SoundSource.prototype.displayInfo = function (domElement) {
 
 }
 
+// Test code that displays a visual depiction of the sound wave on the passed canvas.
 SoundSource.prototype.drawWaveOnCanvas = function (canvas) {
 
 	if (!canvas)

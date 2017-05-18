@@ -1,5 +1,5 @@
 ﻿
-// Example of playing a sound with the built-in Panner system.
+// Example of playing a sound with the built-in Panner 3D spatial sound system.
 function PannerSound(source) {
 	Sound.call(this, source);
 

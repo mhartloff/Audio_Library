@@ -6,7 +6,7 @@ function Scene() {
 	// Location information
 	this.position = new Vector();	// The position of the listener
 	this.orientation = new Matrix();	// The orientation of the listener
-	this.earInfo = new EarInfo();		// Used by the SpatialSound objects
+	//this.earInfo = new EarInfo();		// Used by the SpatialSound objects (if not using SpatialSound this is not relevant)
 	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects
 	this.setPosition(0, 0, 0);
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
@@ -61,7 +61,7 @@ Scene.prototype.getPosition = function () {
 }
 
 Scene.prototype.updateEarInfo = function () {
-	this.earInfo.update(this.position, this.getLeftVec());
+	//this.earInfo.update(this.position, this.getLeftVec());
 }
 
 Scene.prototype.setPosition = function (xOrVec, y /* opt */, z /* opt */) {

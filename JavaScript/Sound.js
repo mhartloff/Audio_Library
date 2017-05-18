@@ -1,5 +1,4 @@
 ﻿
-
 // Base class that plays a sound with no alterations.  To play more complex sounds subclass this.
 function Sound (source) {
 	this.source = source;
