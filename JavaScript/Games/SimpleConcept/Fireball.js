@@ -5,11 +5,10 @@ function Fireball (source, options){
 	if(options.velocity) {
 		this.velocity = options.velocity;
 	}
-	this.gone = false;
 }
 
 Fireball.prototype = Object.create(SceneObject.prototype);
-//Fireball.prototype.constructor = SpatialSound;
+Fireball.prototype.constructor = Fireball;
 
 Fireball.prototype.updatePosition = function (){
 	this.setPosition(this.getPosition().add(this.velocity));

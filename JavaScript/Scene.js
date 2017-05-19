@@ -109,7 +109,7 @@ Scene.prototype.addObject = function (sceneObject) {
 
 // Remove an object from the scene.
 Scene.prototype.removeObject = function (sceneObject) {
-	delete this.objects[sound.sceneID];
+	delete this.objects[sceneObject.sceneID];
 	this.needsRedraw = true;
 }
 
