@@ -18,13 +18,16 @@
 <script src="JavaScript/SceneObject.js"></script>
 <script src="JavaScript/TestSound.js"></script>
 <script src="JavaScript/Games/SimpleConcept/SimpleConcept.js"></script>
+<script src="JavaScript/Games/SimpleConcept/Fireball.js"></script>
 
 <script>
     function onLoad() {
         var game = new SimpleConcept();
-        game.initialize();
+        game.initialize(document.getElementById("scene_canvas"));
         game.run();
     }
 </script>
 
 <h3>===================================</h3>
+
+<canvas id="scene_canvas" width="400" height="450"></canvas>
