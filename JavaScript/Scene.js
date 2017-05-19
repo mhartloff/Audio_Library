@@ -4,11 +4,11 @@
 function Scene() {
 
 	// Location information
-	this.position = new Vector();	// The position of the listener
-	this.orientation = new Matrix();	// The orientation of the listener
+	this.position = new Vector();	// The position of the player
+	this.orientation = new Matrix();	// The orientation of the player
 	//this.earInfo = new EarInfo();		// Used by the SpatialSound objects (if not using SpatialSound this is not relevant)
-	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects
-	this.setPosition(0, 0, 0);
+	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects.  Contains the player's orientation for proper sound.
+	this.setPlayerPosition(0, 0, 0);
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
 
 	// Graphics and UI
@@ -16,9 +16,10 @@ function Scene() {
 	this.needsRedraw = false;
 	this.lastRedrawTime = null;
 	this.selectedObject = null;
-
+	this.touchDeadZone = 50;		// The number of pixels from the center of the screen which is considered a dead zone.
+	
 	var self = this;
-	this.intervalID = setInterval(function () { self.redraw(); }, 100);	// Fire an event to redraw 10/sec
+	this.intervalID = setInterval(function () { self.redraw(); }, 50);	// Fire an event to redraw 10/sec
 
 	this.nextID = 0;	
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
@@ -35,8 +36,8 @@ Scene.prototype.destroy = function () {
 
 Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas = new Canvas2D(canvasElement);
-	this.canvas.setProjection(0, 0, 40);	 // Center at 0, 0.  40 pixels per unit.
-
+	this.canvas.setProjection(this.position.x, this.position.z, 40);	 // Center at 0, 0.  40 pixels per unit.
+	
 	var self = this;
 	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); };
 	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); };
@@ -64,8 +65,8 @@ Scene.prototype.getDirection = function () {
 	return this.orientation.getZAxisH();
 }
 
-// The position of the listener
-Scene.prototype.getPosition = function () {
+// The position of the player
+Scene.prototype.getPlayerPosition = function () {
 	return this.position;
 }
 
@@ -73,14 +74,17 @@ Scene.prototype.updateEarInfo = function () {
 	//this.earInfo.update(this.position, this.getLeftVec());
 }
 
-Scene.prototype.setPosition = function (xOrVec, y /* opt */, z /* opt */) {
+// Set the player position (the player)
+Scene.prototype.setPlayerPosition = function (xOrVec, y /* opt */, z /* opt */) {
 	this.position.set(xOrVec, y, z);
 	this.listener.setPosition(this.position.x, this.position.y, this.position.z);
+	if (this.canvas)
+		this.canvas.setCenter(this.position.x, this.position.z);
 	this.updateEarInfo();
 	this.needsRedraw = true;
 }
 
-// The orientation of the listener.  X-Axis is left, Y-Axis is Up, Z-Axis is forward.
+// The orientation of the player.  X-Axis is left, Y-Axis is Up, Z-Axis is forward.
 Scene.prototype.setOrientation = function (orientation /* Matrix */) {
 	this.orientation.set(orientation);
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
@@ -98,6 +102,23 @@ Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */,
 	this.needsRedraw = true;
 }
 
+// Rotates the player on the xz plane
+Scene.prototype.rotatePlayer = function (degrees) {
+	var rotAxis = this.orientation.getYAxisH();
+	var matrix = this.orientation.rotate(rotAxis.x, rotAxis.y, rotAxis.z, MathExt.degToRad(degrees));
+	this.setOrientation(matrix);
+	this.needsRedraw = true;
+}
+
+// Move a player with respect the player's orientation.
+// For instance, passing (0, 0, 1) would move the player forward 1 unit.
+Scene.prototype.movePlayer = function (vec) {
+	var transformMatrix = this.orientation; //.inverted();		// Transform from player space to world space
+	var transformedVec = vec.clone();
+	transformMatrix.applyToVec(transformedVec);
+	this.setPlayerPosition(this.getPlayerPosition().add(transformedVec));
+}
+
 // Add an object to the scene
 Scene.prototype.addObject = function (sceneObject) {
 	sceneObject.scene = this;
@@ -112,7 +133,7 @@ Scene.prototype.removeObject = function (sceneObject) {
 	this.needsRedraw = true;
 }
 
-// Callback from the DeviceMotion object
+// Callback from the DeviceMotion object, which reports the orientation of the phone.
 Scene.prototype.onMotionUpdate = function () {
 	// Disable for now.
 	//this.setOrientationAxes(DeviceMotion.getLeftVec(), DeviceMotion.getForwardVec(), DeviceMotion.getOutVec());
@@ -154,16 +175,16 @@ Scene.prototype.onMouseMove = function (x, z) {
 	}
 }
 
-Scene.prototype.onTouchStart = function (touch) {
-
+Scene.prototype.onTouchStart = function (touchEvent) {
+	this.needsRedraw = true;
 }
 
-Scene.prototype.onTouchMove = function (touch) {
-
+Scene.prototype.onTouchMove = function (touchEvent) {
+	this.needsRedraw = true;
 }
 
-Scene.prototype.onTouchEnd = function (touch) {
-
+Scene.prototype.onTouchEnd = function (touchEvent) {
+	this.needsRedraw = true;
 }
 
 Scene.prototype.onKeyDown = function (keyCode, x, z) {
@@ -172,22 +193,32 @@ Scene.prototype.onKeyDown = function (keyCode, x, z) {
 	var handled = false;
 	switch (keyCode) {
 		case 37: {   // left arrow
-			this.setPosition(this.position.x - 0.1, this.position.y, this.position.z);
+			this.movePlayer(new Vector(0.2, 0, 0));
 			handled = true;
 			break;
 		}
-		case 38: {   // up arrow
-			this.setPosition(this.position.x, this.position.y, this.position.z - 0.1);
+		case 38: case 87: {   // up arrow, W
+			this.movePlayer(new Vector(0, 0, 0.2));
 			handled = true;
 			break;
 		}
 		case 39: {   // right arrow
-			this.setPosition(this.position.x + 0.1, this.position.y, this.position.z);
+			this.movePlayer(new Vector(-0.2, 0, 0));
 			handled = true;
 			break;
 		}
-		case 40: {   // down arrow
-			this.setPosition(this.position.x, this.position.y, this.position.z + 0.1);
+		case 40: case 83: {   // down arrow, S
+			this.movePlayer(new Vector(0, 0, -0.2));
+			handled = true;
+			break;
+		}
+		case 65: {  // A
+			this.rotatePlayer(10.0);
+			handled = true;
+			break;
+		}
+		case 68: {  // D
+			this.rotatePlayer(-10.0);
 			handled = true;
 			break;
 		}
@@ -195,6 +226,7 @@ Scene.prototype.onKeyDown = function (keyCode, x, z) {
 	return handled;
 }
 
+// The main game loop.
 Scene.prototype.redraw = function () {
 
 	var canvas = this.canvas;
@@ -204,22 +236,18 @@ Scene.prototype.redraw = function () {
 	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
 	this.lastRedrawTime = Date.now();
 
-	if (interval > 0 && canvas.hasTouches()) {
-		// Move the character if there is a current touch
+	// Move the character if there is a current touch
+	if (interval > 0 && canvas.hasTouches()) {		
 		var touch = canvas.getFirstTouch();
-		
 		var el = document.getElementById("debug");
 		el.innerHTML = touch;  // fromCenter.x + ", " + fromCenter.y;
 
 		var fromCenter = canvas.distanceFromCenter(touch.canvasX, touch.canvasY);
 
 		var movePerSec = 3.0;
-		//var maxDistance = 200;
-		this.setPosition(this.position.x + (fromCenter.x / 200) * (movePerSec * (interval / 1000)),
-							  this.position.y,
-							  this.position.z + (fromCenter.y / 200) * (movePerSec * (interval / 1000)));
-
-		//console.log("Distance From Center: " + fromCenter.x + ", " + fromCenter.y);
+		this.setPlayerPosition(this.position.x + (fromCenter.x / 200) * (movePerSec * (interval / 1000)),
+										this.position.y,
+										this.position.z + (fromCenter.y / 200) * (movePerSec * (interval / 1000)));
 		
 	}
 	
@@ -246,7 +274,7 @@ Scene.prototype.redraw = function () {
 	var pos = this.position;
 	var dir = this.getDirection();
 	dir.setLength(1.0);		
-	canvas.drawCircle(pos.x, pos.z, 6 /* radius */, "rgb(10, 10, 10)", "rgb(50, 50, 200)");
+	canvas.drawCircle(pos.x, pos.z, 0.2 /* radius */, "rgb(10, 10, 10)", "rgb(50, 50, 200)");
 	canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(255, 0, 0)");
 
 	// Draw each object
@@ -257,7 +285,7 @@ Scene.prototype.redraw = function () {
 			var fillColor = obj.isPlaying ? "rgb(200, 50, 50)" : "rgb(50, 200, 50)";
 			if (this.selectedObject == obj)
 				fillColor = "rgb(200, 200, 50)";
-			canvas.drawCircle(pos.x, pos.z, 12, "rgb(10, 10, 10)", fillColor);
+			canvas.drawCircle(pos.x, pos.z, 0.4, "rgb(10, 10, 10)", fillColor);
 			var dir = obj.getDirection().clone();
 			dir.mult(0.50);	// Set the length of the line
 			canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(20, 20, 100)");
@@ -266,7 +294,13 @@ Scene.prototype.redraw = function () {
 		}
 	}
 
-
+	// Draw the touch controls
+	var center = canvas.getCenterC();
+	canvas.drawCircleC(center.x, center.y, this.touchDeadZone, "rgb(100, 150, 200)");
 	
+	var touch = canvas.getFirstTouch();
+	if (touch)
+		canvas.drawCircleC(touch.canvasX, touch.canvasY, 30, "rgb(60, 120, 150)", "rgb(120, 175, 220)");
+
 }
 

@@ -33,45 +33,6 @@ Color.prototype.adjustBrightness = function (fraction) {
 	this.b = Math.min(1.0, this.b * fraction);
 }
 
-////////////////////////////////////////////////////////////////
-// GCoord - Global Coordinates
-
-function GCoord(lat, long) {
-	this.lat = lat;
-	this.long = long;
-}
-
-GCoord.prototype.toVert = function() {
-	var result = new Vector();
-	var lat = MathExt.degToRad(this.lat);
-	var long = MathExt.degToRad(this.long);
-	result.x = Math.cos(long) * Math.cos(lat);
-	result.y = Math.sin(lat);
-	result.z = -(Math.sin(long) * Math.cos(lat));	// Negate so positive longitude is ccw
-	return result;
-}
-
-GCoord.prototype.toString = function () {
-	return Math.abs(this.lat.toFixed(2)) + String.fromCharCode(176) + (this.lat > 0 ? " N, " : " S, ") + 
-		   Math.abs(this.long.toFixed(2)) + String.fromCharCode(176) + (this.long > 0 ? " E" : " W");
-}
-
-// Static functions.  Could it go in the GCoord class without enlarging the size of each object?
-var GCoordUtils =
-{
-	toVert: function (lat, long, radius) {
-		radius = radius == null ? 1.0 : radius;
-		var result = new Vector();
-		var latr = MathExt.degToRad(lat);
-		var longr = MathExt.degToRad(long);
-		result.x = Math.cos(longr) * Math.cos(latr);
-		result.y = Math.sin(latr);
-		result.z = -(Math.sin(longr) * Math.cos(latr));	// Negate so positive longitude is ccw
-		result.mult(radius)
-		return result;
-	}
-};
-
 
 ////////////////////////////////////////////////////////////////
 // Range
@@ -551,24 +512,6 @@ Vector.prototype.divc = function (scalar) {
     return result;
 };
 
-Vector.prototype.toGCoord = function () {
-
-	var result = new GCoord();
-	var vec = this.normalized();
-	var latRadians = Math.asin(this.y);
-	result.lat = MathExt.radToDeg(latRadians);
-
-	if (Math.abs(result.lat) > 89.99) {
-		result.long = 0.0;	// Remove ambiguity
-	}
-	else {
-		result.long = MathExt.radToDeg(Math.acos(Math.min(1.0, Math.max(-1.0, this.x / Math.cos(latRadians)))));
-		if (this.z > 0)
-			result.long = -result.long;
-	}
-	return result;
-}
-
 Vector.prototype.toString = function (precision) {
 	var p = precision ? precision : 4;
    return "X: " + this.x.toFixed(p) + "\tY: " + this.y.toFixed(p) + "\tZ: " + this.z.toFixed(p);
@@ -712,7 +655,6 @@ Matrix.prototype.applyToVector = function (vec /* Vector */) {
 Matrix.prototype.applyToVec = function (vec /* Vector */)  {
 	return this.applyToVector(vec);
 };
-
 
 
 // Using floating point precision, the rotation matrix can get off after several multiplications.  This renormalizes the rotation matrix.
@@ -1138,176 +1080,4 @@ Matrix.prototype.setToPerspective = function (fovy, near, far, ar) {
 	e[15] = 0;
 
 	return this;
-};
-
-
-
-var GlobeData = {
-
-   PopulateText: function (domObject) {
-      //Globe.PopulateTextWithHex(domObfect);
-      //Globe.PopulateTextWithPent(domObject);
-      GlobeData.PopulateTextWithInfo(domObject);
-   },
-
-   PopulateTextWithInfo: function (domObject) {
-      var hex1 = new Vector(0.49112, 0.3568, 0.7946);
-      var hex2 = new Vector(1.1920, 0.8660, 0.2814);
-      var pent = new Vector(0.8944, 0.0, 0.4472);
-
-      var hh = hex1.angle(hex2);
-      var hp = hex1.angle(pent);
-
-      //var test1 = MathExt.vecFromPolar(11.8185, 80.116);
-      //var test2 = MathExt.vecFromPolar(36.0, 79.187);
-      //var test3 = MathExt.vecFromPolar(60.181, 80.116);
-
-
-      msg = "HEX1: " + hex1 + "\n" +
-            "HEX2: " + hex2 + "\n" +
-            "PENT: " + pent + "\n" +
-            "HP: " + MathExt.radToDeg(hp).toFixed(2) + " deg \n" +
-            "HH: " + MathExt.radToDeg(hh).toFixed(2) + " deg \n";
-      //      "TEST1: " + test1.multc(1.5) + "\n" +
-      //"TEST2: " + test2.multc(1.5) + "\n" +
-      //"TEST3: " + test3.multc(1.5) + "\n";
-
-      //msg = a + "\n" + b + "\nAngle: " + MathExt.radToDeg(angle).toFixed(3) + " deg" +
-      //    "\nCross: " + a.cross(b).normalized();
-
-      domObject.value = msg;
-   },
-
-   PopulateTextWithHex: function (domElement) {
-
-      var msg = "";
-      var a = new Vector(0.5148, 0.0, 1.4088);
-      var b = new Vector(0.15915, 0.4896, 1.4088);
-      var c = new Vector(0.3183, 0.9794, 1.0905);
-      var d = new Vector(0.8331, 0.9793, 0.7723);
-      var e = new Vector(1.1889, 0.4897, 0.7723);
-      var f = new Vector(1.0297, 0.0, 1.0905);
-      var g = new Vector(1.4464, 0.3027, 0.2575);
-      var h = new Vector(1.1920, 0.8660, 0.2814);
-      var i = new Vector(0.7348, 1.2821, 0.2575);
-      var m = new Vector(0.49112 * 1.5, 0.3568 * 1.5, 0.7946 * 1.5);
-
-      var ab = a.distance(b);
-      var bc = b.distance(c);
-      var cd = c.distance(d);
-      var de = d.distance(e);
-      var ef = e.distance(f);
-      var fa = f.distance(a);
-      var eg = e.distance(g);
-      var eh = e.distance(h);
-      var di = d.distance(i);
-
-      var ma = m.distance(a);
-      var mb = m.distance(b);
-      var mc = m.distance(c);
-      var md = m.distance(d);
-      var me = m.distance(e);
-      var mf = m.distance(f);
-
-      var abc = a.subc(b).angle(c.subc(b));
-      var bcd = b.subc(c).angle(d.subc(c));
-      var cde = c.subc(d).angle(e.subc(d));
-      var def = d.subc(e).angle(f.subc(e));
-      var efa = e.subc(f).angle(a.subc(f));
-      var fab = f.subc(a).angle(b.subc(a));
-
-      //var AEB = MathExt.normal(A, B, C);
-      var ADC = MathExt.normal(a, d, c);
-      var FDC = MathExt.normal(f, d, c);
-
-      msg = "A: " + a + "\n" +
-            "B: " + b + "\n" +
-            "C: " + c + "\n" +
-            "D: " + d + "\n" +
-            "E: " + e + "\n" +
-            "F: " + f + "\n" +
-            "M: " + m + "\n" +
-            "AB: " + ab.toFixed(4) + "\n" +
-            "BC: " + bc.toFixed(4) + "\n" +
-            "CD: " + cd.toFixed(4) + "\n" +
-            "DE: " + de.toFixed(4) + "\n" +
-            "EF: " + ef.toFixed(4) + "\n" +
-            "FA: " + fa.toFixed(4) + "\n" +
-            "EG: " + eg.toFixed(4) + "\n" +
-            "EH: " + eh.toFixed(4) + "\n" +
-            "DI: " + di.toFixed(4) + "\n" +
-            "MA: " + ma.toFixed(4) + "\n" +
-            "MB: " + mb.toFixed(4) + "\n" +
-            "MC: " + mc.toFixed(4) + "\n" +
-            "MD: " + md.toFixed(4) + "\n" +
-            "ME: " + me.toFixed(4) + "\n" +
-            "MF: " + mf.toFixed(4) + "\n" +
-            "FAB: " + MathExt.radToDeg(fab).toFixed(3) + " deg\n" +
-            "ABC: " + MathExt.radToDeg(abc).toFixed(3) + " deg\n" +
-            "BCD: " + MathExt.radToDeg(bcd).toFixed(3) + " deg\n" +
-            "CDE: " + MathExt.radToDeg(cde).toFixed(3) + " deg\n" +
-            "DEF: " + MathExt.radToDeg(def).toFixed(3) + " deg\n" +
-            "EFA: " + MathExt.radToDeg(efa).toFixed(3) + " deg\n" +
-            // "AEBn:" + AEB + "\n" +
-            "ADCn:" + ADC + "\n" +
-            "FDCn:" + FDC + "\n";
-
-      //msg = a + "\n" + b + "\nAngle: " + MathExt.radToDeg(angle).toFixed(3) + " deg" +
-      //    "\nCross: " + a.cross(b).normalized();
-
-      domElement.value = msg;
-   },
-
-   PopulateTextWithPent: function (domElement) {
-      var msg = "";
-      var a = new Vector(1.0297, 0.0, 1.0905);
-      var b = new Vector(1.1889, 0.4897, 0.7723);
-      var c = new Vector(1.4464, 0.3027, 0.2575);
-      var m = new Vector(0.8944, 0.0, 0.4472);
-
-      var ab = a.distance(b);
-      var bc = b.distance(c);
-      var ma = m.distance(a);
-      var mb = m.distance(b);
-      var mc = m.distance(c);
-
-      msg = "A: " + a + "\n" +
-            "B: " + b + "\n" +
-            "C: " + c + "\n" +
-            "M: " + m + "\n" +
-            "AB: " + ab.toFixed(4) + "\n" +
-            "BC: " + bc.toFixed(4) + "\n" +
-            "MA: " + ma.toFixed(4) + "\n" +
-            "MB: " + mb.toFixed(4) + "\n" +
-            "MC: " + mc.toFixed(4) + "\n";
-
-
-      //msg = a + "\n" + b + "\nAngle: " + MathExt.radToDeg(angle).toFixed(3) + " deg" +
-      //    "\nCross: " + a.cross(b).normalized();
-
-      domElement.value = msg;
-   },
-
-   p0: new Vector(1, 0, 0),
-   p1: new Vector(Math.cos(MathExt.degToRad(72.0)), Math.sin(MathExt.degToRad(72.0)), 0.0),
-
-	// Eventually returns 23.637171 degrees.  This is the angle the pentagon side will cover within the sphere.
-	// This means the chord through the hexagon will cover 48.362829 degrees.
-   FindChordData: function (testAngle, delta) {
-   	if (delta < 0.0000001)
-   		return testAngle;
-
-   	var rad = MathExt.degToRad(testAngle);
-   	var testPoint = new Vector(Math.cos(rad), Math.sin(rad));
-
-   	var d0 = this.p0.distance(testPoint);
-   	var d1 = this.p1.distance(testPoint);
-
-   	console.log(testAngle + " deg.  d0 = " + d0 + "  d1 = " + d1 + " delta = " + delta);
-
-   	if (d0 * 2.0 < d1)
-   		return this.FindChordData(testAngle + delta, delta / 2.0);
-   	else
-   		return this.FindChordData(testAngle - delta, delta / 2.0);
-	}
 };

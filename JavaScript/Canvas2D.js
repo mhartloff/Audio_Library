@@ -45,8 +45,23 @@ Canvas2D.prototype.clear = function (color)  {
 	context.fillRect(0, 0, this.width, this.height);
 }
 
+// Get the center in scene coordinates
+Canvas2D.prototype.getCenter = function () {
+	return { x: this.xLeft + (this.width / 2.0 / pixelsPerUnit),
+				y: this.yLow + (this.height / 2.0 / pixelsPerUnit)
+	};
+}
+
+// Get the center in canvas coordinates
+Canvas2D.prototype.getCenterC = function () {
+	return { x: this.width / 2.0,
+				y: this.height / 2.0 
+			  };
+}
+
+// Set the center of the canvas in scene coordinates
 Canvas2D.prototype.setCenter = function (x, y) {
-	this.setProjection(x, y, pixelsPerUnit, invertY)
+	this.setProjection(x, y, this.pixelsPerUnit, this.invertY)
 
 }
 
@@ -95,6 +110,7 @@ Canvas2D.prototype.clientToCanvas = function (clientX, clientY) {
 	};
 }
 
+// Get the distance from the center in canvas coordinates
 Canvas2D.prototype.distanceFromCenter = function (canvasX, canvasY) {
 	var rect = this.domElement.getBoundingClientRect();
 	return {
@@ -163,6 +179,9 @@ Canvas2D.prototype._onMouseMove = function (ev) {
 }
 
 Canvas2D.prototype._onKeyDown = function (ev) {
+
+	if (!this.mousePosition)
+		return;
 
 	var p = this.mousePosition;
 		
@@ -236,6 +255,10 @@ Canvas2D.prototype._onTouchStart = function (touchEvent) {
 			touchEvent.preventDefault();
 		}
 	}
+
+	if (this.onTouchStart)
+		this.onTouchStart(touchEvent);
+
 	this.updateTouchStatus();
 }
 
@@ -253,6 +276,10 @@ Canvas2D.prototype._onTouchMove = function (touchEvent) {
 			touchEvent.preventDefault();
 		}
 	}
+
+	if (this.onTouchMove)
+		this.onTouchMove(touchEvent);
+
 	this.updateTouchStatus();
 }
 
@@ -262,6 +289,10 @@ Canvas2D.prototype._onTouchEnd = function (touchEvent) {
 	for (var i = 0; i < touches.length; i++) {
 		delete this.currentTouches[touches[i].identifier];
 	}
+
+	if (this.onTouchEnd)
+		this.onTouchEnd(touchEvent);
+
 	this.updateTouchStatus();
 }
 
@@ -280,16 +311,13 @@ Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {
 	this.context.stroke();
 }
 
-// Draw a circle.  If outlineColor or fillColor are null, do not draw those.  x and y are in scene coordinates.
-Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor) {
-
+// Draw a circle using canvas coordinates
+Canvas2D.prototype.drawCircleC = function (canvasX, canvasY, canvasRad, outlineColor, fillColor) {
+	
 	var context = this.context;
-	var p = this.sceneToCanvas(x, y);
-	
 	context.beginPath();
-	context.arc(p.x, p.y,radius, 0 /* start angle */, 2 * Math.PI /* end angle */); 
-
-	
+	context.arc(canvasX, canvasY, canvasRad, 0 /* start angle */, 2 * Math.PI /* end angle */); 
+		
 	if (fillColor)  {
 		context.fillStyle = fillColor;
 		context.fill();
@@ -298,6 +326,15 @@ Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor)
 		context.strokeStyle = outlineColor;
 		context.stroke();
 	}
+}
+
+// Draw a circle.  If outlineColor or fillColor are null, do not draw those.  x, y, and rad are in scene space.
+Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor) {
+
+	var canvasCoord = this.sceneToCanvas(x, y);
+	var canvasRad = radius * this.pixelsPerUnit;
+
+	this.drawCircleC(canvasCoord.x, canvasCoord.y, canvasRad, outlineColor, fillColor);
 }
 
 // Draw a rectangle.  If outlineColor or fillColor are null, do not draw those.  x and y are in scene coordinates.
