@@ -18,11 +18,11 @@ EarInfo.earDistance = 10 / 39;
 EarInfo.prototype.subscribe = function (obj) {
 	obj.earInfoID = this.nextID++;
 	this.subscribers[obj.earInfoID] = obj;
-}
+};
 
 EarInfo.prototype.unsubscribe = function (obj) {
 	delete this.subscribers[obj.earInfoID];
-}
+};
 
 EarInfo.prototype.update = function (position /* Vec */, leftVec /* Vec */) {
 
@@ -40,7 +40,7 @@ EarInfo.prototype.update = function (position /* Vec */, leftVec /* Vec */) {
 		if (this.subscribers.hasOwnProperty(id))
 			this.subscribers[id].onEarInfoChange();
 	}
-}
+};
 
 // As the sound's angle from the ear increases attenuate it to simulate the sound becoming blocked by the head.
 EarInfo.attenStart = MathExt.degToRad(40);	// Angle at which no sound attenuation occurs (not blocked by head)
@@ -55,4 +55,4 @@ EarInfo.prototype.getAttenuation = function (angle) {
 		return EarInfo.attenAmount;
 	var atten = (angle - EarInfo.attenStart) / (EarInfo.attenEnd - EarInfo.attenStart) * EarInfo.attenAmount;
 	return atten;
-}
+};

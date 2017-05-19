@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proof of Concept</title>
+</head>
+<body onload="onLoad();">
+
+<link rel="stylesheet" href="css/main.css"/>
+
+<script src="JavaScript/Common/Utils.js"></script>
+<script src="JavaScript/Common/DeviceMotion.js"></script>
+
+<script src="JavaScript/Canvas2D.js"></script>
+<script src="JavaScript/WebAudio.js"></script>
+<script src="JavaScript/Sound.js"></script>
+<script src="JavaScript/PannerSound.js"></script>
+<script src="JavaScript/Scene.js"></script>
+<script src="JavaScript/SceneObject.js"></script>
+<script src="JavaScript/TestSound.js"></script>
+<script src="JavaScript/Games/SimpleConcept/SimpleConcept.js"></script>
+
+<script>
+    function onLoad() {
+        var game = new SimpleConcept();
+        game.initialize();
+        game.run();
+    }
+</script>
+
+<h3>===================================</h3>

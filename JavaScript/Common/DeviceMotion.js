@@ -5,7 +5,7 @@ var DeviceMotion =
 	azimuth: 0,					// [0:360] The number of CCW degrees the device is pointing in relation to the start value.  For instance, turning CW 90 degrees will output 270.
 	pitch: 0,					// [-180:180] The angle up or down.  Flat on table: 0   Looking foward on xy plane: 90  Pointing up (or flat upside down): 180/-180 (beta)
 	roll: 0,						// [-90:90] The roll left or right.  Flat: 0, Roll to right: 90, Roll to left: -90, Upside down: 0 (gamma)
-	acceleration: new Vector(),	// Accelleration in 3 axes in m/s2  (not interesting to us?)
+	acceleration: new Vector(),	// Acceleration in 3 axes in m/s2  (not interesting to us?)
 	interval: 0,				// How often data is obtained, in ms.  Returned by the motion event.  IPhone: 60/sec.
 	upsideDown: false,		// The phone's screen is pointing toward the ground.  Needed because the roll value is ambiguous.
 

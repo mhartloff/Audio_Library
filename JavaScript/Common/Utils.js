@@ -24,14 +24,14 @@ Color.prototype.set = function (r, g, b, a) {
 		this.b = b;
 		this.a = (a == undefined) ? 1.0 : a;
 	}
-}
+};
 
 Color.prototype.adjustBrightness = function (fraction) {
 
 	this.r = Math.min(1.0, this.r * fraction);
 	this.g = Math.min(1.0, this.g * fraction);
 	this.b = Math.min(1.0, this.b * fraction);
-}
+};
 
 ////////////////////////////////////////////////////////////////
 // GCoord - Global Coordinates
@@ -49,12 +49,12 @@ GCoord.prototype.toVert = function() {
 	result.y = Math.sin(lat);
 	result.z = -(Math.sin(long) * Math.cos(lat));	// Negate so positive longitude is ccw
 	return result;
-}
+};
 
 GCoord.prototype.toString = function () {
 	return Math.abs(this.lat.toFixed(2)) + String.fromCharCode(176) + (this.lat > 0 ? " N, " : " S, ") + 
 		   Math.abs(this.long.toFixed(2)) + String.fromCharCode(176) + (this.long > 0 ? " E" : " W");
-}
+};
 
 // Static functions.  Could it go in the GCoord class without enlarging the size of each object?
 var GCoordUtils =
@@ -87,22 +87,22 @@ Range.prototype.set = function (value1, value2) {
         this.start = value1 < value2 ? value1 : value2;
     if (value2 != null)
         this.end = value2 > value1 ? value2 : value1;
-}
+};
 
 Range.prototype.isValid = function () {
     return this.start <= this.end;
-}
+};
 
 // Reduces the range to that which is included in both ranges.
 Range.prototype.inclusive = function(other /* Range */) {
     
     this.start = this.start > other.start ? this.start : other.start;
     this.end = this.end < other.end ? this.end : other.end;
-}
+};
 
 Range.prototype.isWithin = function (min, max) {
     return this.isValid() && this.end >= min && this.start <= max;
-}
+};
 
 ////////////////////////////////////////////////////////////////
 // Vector2 - a 2D vector
@@ -116,7 +116,7 @@ function Vector2 (x, y) {
 // Returns the counter clockwise perpedicular to this ray.
 Vector2.prototype.perpedicular = function () {
 	return new Vector2(-this.y, this.x);
-}
+};
 
 Vector2.prototype.length = function () {
 	return Math.sqrt(this.x * this.x + this.y * this.y);
@@ -125,60 +125,60 @@ Vector2.prototype.length = function () {
 Vector2.prototype.distance = function (other /* Vector2 */) {
 	var p = this.subc(other);
 	return p.length();
-}
+};
 
 Vector2.prototype.add = function (other) {
 	this.x += other.x;
 	this.y += other.y;
 	return this;
-}
+};
 
 Vector2.prototype.addc = function (other /* Vector2 */) {
 	return new Vector2(this.x + other.x, this.y + other.y);
-}
+};
 
 
 Vector2.prototype.sub = function (other) {
 	this.x -= other.x;
 	this.y -= other.y;
 	return this;
-}
+};
 
 Vector2.prototype.subc = function (other /* Vector2 */) {
 
 	return new Vector2(this.x - other.x, this.y - other.y);
-}
+};
 
 Vector2.prototype.mult = function (scalar) {
 	this.x *= scalar;
 	this.y *= scalar;
 	return this;
-}
+};
 
 Vector2.prototype.multc = function (other /* Vector2 */) {
 
 	return new Vector2(this.x * scalar, this.y * scalar);
-}
+};
 
 Vector2.prototype.div = function (scalar) {
 	this.x /= scalar;
 	this.y /= scalar;
 	return this;
-}
+};
 
 Vector2.prototype.divc = function (other /* Vector2 */) {
 
 	return new Vector2(this.x * scalar, this.y * scalar);
-}
+};
 
 Vector2.prototype.dot = function (other /* Vector2 */) {
 	return other.x * this.x + other.y * this.y;
-}
+};
 
 Vector2.prototype.normalize = function () {
 	this.div(this.length());
 	return this;
-}
+};
 
 
 
@@ -194,17 +194,17 @@ Line2.prototype.normal = function () {
 	var normal = this.direction().perpedicular();
 	normal.normalize();
 	return normal;
-}
+};
 
 Line2.prototype.direction = function () {
 	return this.p2.subc(this.p1);
-}
+};
 
 Line2.prototype.distance = function (point) {
 	var p = point.subc(this.p1);
 	var distance = p.dot(this.normal());
 	return Math.abs(distance);
-}
+};
 
 // Get the intersection between 2 rays.
 Line2.prototype.intersection = function (other /* Line2 */) {
@@ -222,7 +222,7 @@ Line2.prototype.intersection = function (other /* Line2 */) {
 	if (other.distance(intersection) > distance)
 		return null;	// Rays are moving away from each other.
 	return intersection;
-}
+};
 
 ////////////////////////////////////////////////////////////////
 // Line
@@ -235,17 +235,17 @@ function Line (p1 /* Vector3 */, p2 /* Vector3 */) {
 Line.prototype.set = function (p1, p2) {
     this.p1 = p1;
     this.p2 = p2;
-}
+};
 
 Line.prototype.length = function () {
     return this.p1.distance(this.p2);
-}
+};
 
 Line.prototype.getDirection = function () {
     var dir = this.p2.subc(this.p1);
     dir.normalize();
     return dir;
-}
+};
 
 ////////////////////////////////////////////////////////////////
 // Plane
@@ -260,12 +260,12 @@ Plane.prototype.set = function(point, normal) {
     this.point = point;
     this.normal = normal;
     normal.normalize();
-}
+};
 
 Plane.prototype.getPointDistance = function (point /* Vector */) {
     var distance = this.point.subc(point).dot(this.normal);
     return Math.abs(distance);
-}
+};
 
 Plane.prototype.getLineIntersection = function (line /* Line */) {
     var distanceFromPlane1 = this.getPointDistance(line.p1);
@@ -287,14 +287,14 @@ Plane.prototype.getLineIntersection = function (line /* Line */) {
         intersection: inter,
         param: distanceOnLine / lineLength
     };
-}
+};
 
 Plane.createFromPoints = function (p1, p2, p3) {
     var seg = p3.subc(p1);
     var seg2 = p2.subc(p1);
     var plane = new Plane(p1, seg2.cross(seg));
     return plane;
-}
+};
 
 ////////////////////////////////////////////////////////////////
 // Bounding Box
@@ -312,7 +312,7 @@ function BoundingBox(p1, p2) {
 
 BoundingBox.prototype.isValid = function () {
     return this.min.x <= this.max.x;
-}
+};
 
 BoundingBox.prototype.addPoint = function (p /* Vector */) {
     if (p.x < this.min.x) this.min.x = p.x;
@@ -345,12 +345,12 @@ BoundingBox.prototype.contains = function (p /* Vector */) {
         && p.y <= this.max.y
         && p.z >= this.min.z
         && p.z <= this.max.z;
-}
+};
 
 BoundingBox.prototype.clear = function() {
     this.min.x = this.min.y = this.min.z = 1e8;
     this.max.x = this.max.y = this.max.z = -1e8;
-}
+};
 
 
 
@@ -378,7 +378,7 @@ BoundingBox.prototype.intersectsLine = function (line /* Line */) {
     il_range1.inclusive(il_range2);
     
     return il_range1.isWithin(0, 1);
-}
+};
 
 
 ////////////////////////////////////////////////////////////////
@@ -402,20 +402,20 @@ Vector.prototype.set = function (xOrVec, y, z) {
 		this.y = y;
 		this.z = z;
 	}
-}
+};
 
 // Get a single component with an index, starting at 0.
 Vector.prototype.getComponent = function (i) {
 	if (i == 0)		 return this.x;
 	else if (i == 1) return this.y;
 	else if (i == 2) return this.z;
-}
+};
 
 Vector.prototype.setComponent = function (i, value) {
 	if (i == 0)		 this.x = value;
 	else if (i == 1) this.y = value;
 	else if (i == 2) this.z = value;
-}
+};
 
 Vector.prototype.clone = function () {
     return new Vector(this.x, this.y, this.z);
@@ -426,7 +426,7 @@ Vector.prototype.equals = function (other /* vector */, tolerance) {
     if (tolerance == null)
         return d < 0.00001;
     return d < tolerance;
-}
+};
 
 // returns number
 Vector.prototype.length = function () {
@@ -460,11 +460,11 @@ Vector.prototype.reverse = function () {
 	this.x = -this.x;
 	this.y = -this.y;
 	this.z = -this.z;
-}
+};
 
 Vector.prototype.reversed = function () {
 	return new Vector(-this.x, -this.y, -this.z);
-}
+};
 
 // returns number
 Vector.prototype.dot = function (other /* vector */) {
@@ -489,7 +489,7 @@ Vector.prototype.angle = function (other /* vector */) {
 
 Vector.prototype.angleDeg = function (other /* vector */) {
     return MathExt.radToDeg(this.angle(other));
-}
+};
 
 Vector.prototype.sub = function (other /* vector */) {
     this.x = this.x - other.x;
@@ -501,7 +501,7 @@ Vector.prototype.subc = function (other /* vector */) {
     var result = this.clone();
     result.sub(other);
     return result;
-}
+};
 
 Vector.prototype.add = function (other /* vector */) {
     this.x = this.x + other.x;
@@ -514,7 +514,7 @@ Vector.prototype.addc = function (other /* vector */) {
 	var result = this.clone();
 	result.add(other);
 	return result;
-}
+};
 
 // Add passing individual components.
 Vector.prototype.addComp = function (x, y, z) {
@@ -523,14 +523,14 @@ Vector.prototype.addComp = function (x, y, z) {
 	this.z += z;
 
 	return this;
-}
+};
 
 Vector.prototype.mult = function (scalar) {
     this.x = this.x * scalar;
     this.y = this.y * scalar;
     this.z = this.z * scalar;
     return this;
-}
+};
 
 Vector.prototype.multc = function (scalar) {
     var result = this.clone();
@@ -567,7 +567,7 @@ Vector.prototype.toGCoord = function () {
 			result.long = -result.long;
 	}
 	return result;
-}
+};
 
 Vector.prototype.toString = function (precision) {
 	var p = precision ? precision : 4;
@@ -591,7 +591,7 @@ Triangle.prototype.getArea = function (triangle) {
     var cross = this.p2.cross(this.p3);
     var area = cross.length() / 2.0;
     return area;
-}
+};
 
 Triangle.prototype.getCentroid = function (triangle) {
 	var center = this.p1.clone();
@@ -599,7 +599,7 @@ Triangle.prototype.getCentroid = function (triangle) {
 	center.add(this.p3);
 	center.div(3);
 	return center;
-}
+};
 
 Triangle.prototype.isPointWithin = function (point) {
     var e12 = this.p1.subc(this.p2);
@@ -626,7 +626,7 @@ Triangle.prototype.isPointWithin = function (point) {
         return false;
 
     return true;
-}
+};
 
 //////////////////////////////////////////////////////////////
 // MathExt
@@ -656,7 +656,7 @@ var MathExt = {
 	}
 
 
-}
+};
 
 
 
@@ -669,14 +669,14 @@ function Matrix()
 {
 	// Set to identity
 	this.e = new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]);
-};
+}
 
 Matrix.prototype.set = function (other /* Matrix */)
 {
 	for (var i = 0; i < 16; i++) {
 		this.e[i] = other.e[i];
 	}
-}
+};
 
 Matrix.prototype.clone = function ()
 {
@@ -706,7 +706,7 @@ Matrix.prototype.applyToVector = function (vec /* Vector */) {
 	z = vec.x * e[2] + vec.y * e[6] + vec.z * e[10] + e[14];
 	vec.set(x, y, z);
 	return vec;
-}
+};
 
 // Deprecated
 Matrix.prototype.applyToVec = function (vec /* Vector */)  {
@@ -733,7 +733,7 @@ Matrix.prototype.normalizeRotation = function (tolerance /* number */)  {
 		e[4] = yVec.x; e[5] = yVec.y; e[6] = yVec.z;
 		e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
 	}
-}
+};
 
 // Retrieve the x axis by going horizontally (row-major?)
 Matrix.prototype.getXAxisH = function (result /* Vector */) {
@@ -742,7 +742,7 @@ Matrix.prototype.getXAxisH = function (result /* Vector */) {
 	result.y = this.e[1];
 	result.z = this.e[2];
 	return result;
-}
+};
 
 Matrix.prototype.getYAxisH = function (result /* Vector */) {
 	if (!result) result = new Vector();
@@ -750,7 +750,7 @@ Matrix.prototype.getYAxisH = function (result /* Vector */) {
 	result.y = this.e[5];
 	result.z = this.e[6];
 	return result;
-}
+};
 
 Matrix.prototype.getZAxisH = function (result /* Vector */) {
 	if (!result) result = new Vector();
@@ -758,7 +758,7 @@ Matrix.prototype.getZAxisH = function (result /* Vector */) {
 	result.y = this.e[9];
 	result.z = this.e[10];
 	return result;
-}
+};
 
 // Retrieve the y axis by going vertically (column-major?)
 Matrix.prototype.getXAxisV = function (result /* Vector */) {
@@ -767,7 +767,7 @@ Matrix.prototype.getXAxisV = function (result /* Vector */) {
 	result.y = this.e[4];
 	result.z = this.e[8];
 	return result;
-}
+};
 
 Matrix.prototype.getYAxisV = function (result /* Vector */) {
 	if (!result) result = new Vector();
@@ -775,7 +775,7 @@ Matrix.prototype.getYAxisV = function (result /* Vector */) {
 	result.y = this.e[5];
 	result.z = this.e[9];
 	return result;
-}
+};
 
 Matrix.prototype.getZAxisV = function (result /* Vector */) {
 	if (!result) result = new Vector();
@@ -783,7 +783,7 @@ Matrix.prototype.getZAxisV = function (result /* Vector */) {
 	result.y = this.e[6];
 	result.z = this.e[10];
 	return result;
-}
+};
 
 // Set the orientation of the axis where the z vec appears to point in the passed direction.
 Matrix.prototype.setAxes = function (xVec, yVec, zVec) {
@@ -791,7 +791,7 @@ Matrix.prototype.setAxes = function (xVec, yVec, zVec) {
 	e[0] = xVec.x; e[1] = xVec.y; e[2] = xVec.z;
 	e[4] = yVec.x; e[5] = yVec.y; e[6] = yVec.z;
 	e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
-}
+};
 
 // Set the orientation of the axes where the z vec goes into the screen.
 Matrix.prototype.setAxes2 = function (xVec, yVec, zVec) {
@@ -799,7 +799,7 @@ Matrix.prototype.setAxes2 = function (xVec, yVec, zVec) {
 	e[0] = xVec.x; e[4] = xVec.y; e[8] = xVec.z;
 	e[1] = yVec.x; e[5] = yVec.y; e[9] = yVec.z;
 	e[2] = zVec.x; e[6] = zVec.y; e[10] = zVec.z;
-}
+};
 
 
 Matrix.prototype.setToTranslation = function (x, y, z)  {
@@ -903,7 +903,7 @@ Matrix.prototype.setFromTransform = function (center, yVector, xVector) {
 
 	this.translate(offset.x, offset.y, offset.z);
 	this.setAxes(xVec, yVec, zVec);
-}
+};
 
 // Useful for setting the orientation of the camera for which the z vector is significant.
 Matrix.prototype.setFromOrientation = function(zVec, yUp) {
@@ -921,7 +921,7 @@ Matrix.prototype.setFromOrientation = function(zVec, yUp) {
 	yVec = zVec.cross(xVec);
 	yVec.normalize();
 	this.setAxes2(xVec, yVec, zVec);
-}
+};
 
 // Multiply this matrix by the passed matrix.  
 Matrix.prototype.multiply = function (other /* matrix */, optResult)
@@ -1002,7 +1002,7 @@ Matrix.prototype.premultiplied = function (other /* matrix */) {
 };
 
 Matrix.prototype.invert = function (optResult) {
-	var e = this.e
+	var e = this.e;
 	var r = optResult != null ? optResult.e : this.e;
 	var inv = new Float32Array(16);
 

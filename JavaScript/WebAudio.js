@@ -31,7 +31,7 @@ SoundSource.prototype.load = function () {
         console.log(msg);
     };
     request.send();
-}
+};
 
 SoundSource.prototype.decode = function () {
     if (this.response == null)
@@ -58,7 +58,7 @@ SoundSource.prototype.decode = function () {
         function (e) {     // Error
             console.log("Error decoding audio file: " + self.alias);
         });
-}
+};
 
 
 SoundSource.prototype.displayInfo = function (domElement) {
@@ -73,7 +73,7 @@ SoundSource.prototype.displayInfo = function (domElement) {
 	else
 		console.log(msg);
 
-}
+};
 
 // Test code that displays a visual depiction of the sound wave on the passed canvas.
 SoundSource.prototype.drawWaveOnCanvas = function (canvas) {
@@ -190,5 +190,5 @@ var WebAudio =
    		source.drawOnCanvas();
    }
 
-}
+};
 

@@ -29,6 +29,7 @@ function Scene() {
 		DeviceMotion.subscribe(this);
 }
 
+
 Scene.prototype.destroy = function () {
 	clearInterval(this.intervalID);
 }
@@ -198,8 +199,9 @@ Scene.prototype.onKeyDown = function (keyCode, x, z) {
 Scene.prototype.redraw = function () {
 
 	var canvas = this.canvas;
-	if (!this.canvas)
+	if (!this.canvas) {
 		return;
+	}
 
 	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
 	this.lastRedrawTime = Date.now();
