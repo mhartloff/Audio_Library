@@ -11,12 +11,20 @@ function Canvas2D(canvasElement) {
    this.context.font = "12px Arial";
    this.invertY = false;
 
+	this.mousePosition = null;		// The last location of the mouse cursor, in canvas coordinates.
    this.selectedPos = null;		// The last position selected by the user, in scene space.
-
+	this.limitTo1Touch = false;
+	this.currentTouches = {};		// The touches currently active, keyed by the touch identifier.
+	
+	canvasElement.className += canvasElement.className ? ' canvas2D' : 'canvas2D';	// add the canvas2D css.
    canvasElement.onmousedown = function (ev) { self._onMouseDown(ev); };
    canvasElement.onmouseup = function (ev) { self._onMouseUp(ev); }
    document.addEventListener('mousemove', function (ev) { self._onMouseMove(ev); }, false);
-   canvasElement.addEventListener('keydown', function (ev) { self.onKeyDown(ev); }, false);
+   document.addEventListener('keydown', function (ev) { self._onKeyDown(ev); }, false);
+	document.addEventListener('touchstart',  function (ev) { self._onTouchStart(ev); }, false);
+	document.addEventListener('touchend',	  function (ev) { self._onTouchEnd(ev); }, false);
+	document.addEventListener('touchcancel', function (ev) { self._onTouchEnd(ev); }, false);
+	document.addEventListener('touchmove',   function (ev) { self._onTouchMove(ev); }, false);
    canvasElement.oncontextmenu = function (ev) { return false; };		// Disable right-click context menu
    
 	// Callbacks that can be set.  Returns the coord of the event in scene space.
@@ -35,6 +43,11 @@ Canvas2D.prototype.clear = function (color)  {
 	var context = this.context;
 	context.fillStyle = color;
 	context.fillRect(0, 0, this.width, this.height);
+}
+
+Canvas2D.prototype.setCenter = function (x, y) {
+	this.setProjection(x, y, pixelsPerUnit, invertY)
+
 }
 
 Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit, invertY) {
@@ -79,6 +92,14 @@ Canvas2D.prototype.clientToCanvas = function (clientX, clientY) {
 	return {
 		x: clientX - rect.left,
 		y: clientY - rect.top
+	};
+}
+
+Canvas2D.prototype.distanceFromCenter = function (canvasX, canvasY) {
+	var rect = this.domElement.getBoundingClientRect();
+	return {
+		x: canvasX - (rect.width / 2),
+		y: canvasY - (rect.height / 2)		// invert
 	};
 }
 
@@ -130,7 +151,8 @@ Canvas2D.prototype._onMouseUp = function (ev) {
 Canvas2D.prototype._onMouseMove = function (ev) {
 
 	var p = this.clientToCanvas(ev.x, ev.y);
-		
+	this.mousePosition = p;
+			
 	if (p.x >= 0 && p.x < this.width &&
 		 p.y >= 0 && p.y < this.height) {
 		var s = this.canvasToScene(p.x, p.y);
@@ -140,11 +162,111 @@ Canvas2D.prototype._onMouseMove = function (ev) {
 	}
 }
 
-Canvas2D.prototype.onKeyDown = function (ev) {
+Canvas2D.prototype._onKeyDown = function (ev) {
 
-	//var p = clientToScene(ev.x, ev.y);
+	var p = this.mousePosition;
+		
+	if (p.x >= 0 && p.x < this.width &&
+		 p.y >= 0 && p.y < this.height) {
+		var s = this.canvasToScene(p.x, p.y);
+
+		if (this.onKeyDown)  {
+			var handled = this.onKeyDown(ev.which, s.x, s.y);		// Pass back the key code and the location in the scene the mouse is at.
+			if (handled)
+				ev.preventDefault();
+		}
+	}
 }
 
+/* -- TOUCH FUNCTIONALITY ------------------------------ */
+
+Canvas2D.prototype.hasTouches = function () {
+	for (var touchId in this.currentTouches) {
+		if (this.currentTouches.hasOwnProperty(touchId)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+Canvas2D.prototype.getTouches = function () {
+	return this.currentTouches;
+}
+
+Canvas2D.prototype.getFirstTouch = function () {
+	for (var touchId in this.currentTouches) {
+		if (this.currentTouches.hasOwnProperty(touchId)) {
+			return this.currentTouches[touchId];
+		}
+	}
+	return null;
+}
+
+Canvas2D.prototype.updateTouchStatus = function () {
+	var statusElement = document.getElementById("touchOutput");
+
+	if (statusElement) {
+		var msg = "";
+		for (var touchId in this.currentTouches) {
+			if (this.currentTouches.hasOwnProperty(touchId)) {
+				var touch = this.currentTouches[touchId];
+				msg += "Touch " + touch.identifier + ": " + touch.canvasX + ", " + touch.canvasY + "<br>";
+			}
+		}
+		statusElement.innerHTML = msg;
+	}
+	
+}
+
+Canvas2D.prototype._onTouchStart = function (touchEvent) {
+
+	if (this.limitTo1Touch == true && this.currentTouches >= 1)
+		return;
+
+	var newTouches = touchEvent.changedTouches;
+
+	for (var i = 0; i < newTouches.length; i++) {
+		var touch = newTouches[i];
+		var p = this.clientToCanvas(touch.clientX, touch.clientY);
+		// only add the touch if it is within the bounds of the canvas.
+		if (p.x >= 0 && p.x < this.width &&	p.y >= 0 && p.y < this.height) {
+			touch.canvasX = p.x;
+			touch.canvasY = p.y;
+			this.currentTouches[touch.identifier] = touch;
+			touchEvent.preventDefault();
+		}
+	}
+	this.updateTouchStatus();
+}
+
+Canvas2D.prototype._onTouchMove = function (touchEvent) {
+	var touches = touchEvent.changedTouches;
+
+	for (var i = 0; i < touches.length; i++) {
+		var touch = touches[i];
+		var curTouch = this.currentTouches[touch.identifier];
+
+		if (curTouch) {
+			var p = this.clientToCanvas(touch.clientX, touch.clientY);
+			curTouch.canvasX = p.x;
+			curTouch.canvasY = p.y;
+			touchEvent.preventDefault();
+		}
+	}
+	this.updateTouchStatus();
+}
+
+Canvas2D.prototype._onTouchEnd = function (touchEvent) {
+	var touches = touchEvent.changedTouches;
+
+	for (var i = 0; i < touches.length; i++) {
+		delete this.currentTouches[touches[i].identifier];
+	}
+	this.updateTouchStatus();
+}
+
+
+/* -- DRAW FUNCTIONALITY ----------------- */
 
 // Coordinates are in local projection coordinates.
 Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {

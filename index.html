@@ -5,6 +5,8 @@
 </HEAD>
 <BODY onload="onLoad();">
 
+	<link rel="stylesheet" href="css/main.css" />
+
    <script src="JavaScript/Common/Utils.js"></script>
    <script src="JavaScript/Common/DeviceMotion.js"></script>
 
@@ -84,13 +86,7 @@
     
 	<h3>Web Audio API Demo</h3>
 
-   <table>
-		<tr><td>Volume:</td>
-			<td><input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /></td>
-			<td><span id="volOutput">1</span></td>
-		</tr>
-	</table>
-	<br>
+   <br>
     
    <input type="button" value="BIRDY" onclick="bird.play();" />
    <input type="button" value="ACE OF BASS" onclick="aceOfBass.play();" />
@@ -105,7 +101,21 @@
    <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
    
    Position Info (+Y comes out of the screen) <br>
-	<canvas id="scene_canvas" width="450" height="450"></canvas>
+	<canvas id="scene_canvas" width="400" height="450"></canvas>
+
+	<!-- Container for outputting the phone orientation -->
+	<div id="debug"></div>
+
+	<h5>Touch</h5>
+	<div id="touchOutput"></div>
+
+	<table>
+		<tr><td>Volume:</td>
+			<td><input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /></td>
+			<td><span id="volOutput">1</span></td>
+		</tr>
+	</table>
+
 
 	<!-- Container for outputting the phone orientation -->
 	<h5>Motion</h5>

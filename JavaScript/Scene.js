@@ -14,6 +14,7 @@ function Scene() {
 	// Graphics and UI
 	this.canvas = null;			// Canvas2D object which the scene is displayed (optional)
 	this.needsRedraw = false;
+	this.lastRedrawTime = null;
 	this.selectedObject = null;
 
 	var self = this;
@@ -37,9 +38,17 @@ Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas.setProjection(0, 0, 40);	 // Center at 0, 0.  40 pixels per unit.
 
 	var self = this;
-	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); }
-	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); }
-	this.canvas.onMouseMove =	function (x, z) { self.onMouseMove(x, z); }
+	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); };
+	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); };
+	this.canvas.onMouseMove =	function (x, z) { self.onMouseMove(x, z); };
+	this.canvas.onKeyDown = function (key, x, z) { return self.onKeyDown(key, x, z); };	// returns if it was handled
+
+	// Touch functionality
+	this.canvas.limitTo1Touch = true;
+	this.canvas.onTouchStart = function (touch) { self.onTouchStart();  }
+	this.canvas.onTouchMove = function (touch) { self.onTouchStart();   }
+	this.canvas.onTouchEnd = function (touch)  { self.onTouchEnd();  }
+	
 	this.needsRedraw = true;
 }
 
@@ -105,7 +114,8 @@ Scene.prototype.removeObject = function (sceneObject) {
 
 // Callback from the DeviceMotion object
 Scene.prototype.onMotionUpdate = function () {
-	this.setOrientationAxes(DeviceMotion.getLeftVec(), DeviceMotion.getForwardVec(), DeviceMotion.getOutVec());
+	// Disable for now.
+	//this.setOrientationAxes(DeviceMotion.getLeftVec(), DeviceMotion.getForwardVec(), DeviceMotion.getOutVec());
 }
 
 Scene.prototype.stopAllSounds = function () {
@@ -142,16 +152,81 @@ Scene.prototype.onMouseMove = function (x, z) {
 	if (this.selectedObject) {
 		this.selectedObject.setPosition(new Vector(x, 0, z));
 	}
+}
 
+Scene.prototype.onTouchStart = function (touch) {
+
+}
+
+Scene.prototype.onTouchMove = function (touch) {
+
+}
+
+Scene.prototype.onTouchEnd = function (touch) {
+
+}
+
+Scene.prototype.onKeyDown = function (keyCode, x, z) {
+	
+	console.log("Key '" + keyCode + "' pressed at: " + x + ", " + z);
+	var handled = false;
+	switch (keyCode) {
+		case 37: {   // left arrow
+			this.setPosition(this.position.x - 0.1, this.position.y, this.position.z);
+			handled = true;
+			break;
+		}
+		case 38: {   // up arrow
+			this.setPosition(this.position.x, this.position.y, this.position.z - 0.1);
+			handled = true;
+			break;
+		}
+		case 39: {   // right arrow
+			this.setPosition(this.position.x + 0.1, this.position.y, this.position.z);
+			handled = true;
+			break;
+		}
+		case 40: {   // down arrow
+			this.setPosition(this.position.x, this.position.y, this.position.z + 0.1);
+			handled = true;
+			break;
+		}
+	}
+	return handled;
 }
 
 Scene.prototype.redraw = function () {
 
-	if (!this.canvas || !this.needsRedraw)
-		return;
-	this.needsRedraw = false;
-
 	var canvas = this.canvas;
+	if (!this.canvas)
+		return;
+
+	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
+	this.lastRedrawTime = Date.now();
+
+	if (interval > 0 && canvas.hasTouches()) {
+		// Move the character if there is a current touch
+		var touch = canvas.getFirstTouch();
+		
+		var el = document.getElementById("debug");
+		el.innerHTML = touch;  // fromCenter.x + ", " + fromCenter.y;
+
+		var fromCenter = canvas.distanceFromCenter(touch.canvasX, touch.canvasY);
+
+		var movePerSec = 3.0;
+		//var maxDistance = 200;
+		this.setPosition(this.position.x + (fromCenter.x / 200) * (movePerSec * (interval / 1000)),
+							  this.position.y,
+							  this.position.z + (fromCenter.y / 200) * (movePerSec * (interval / 1000)));
+
+		//console.log("Distance From Center: " + fromCenter.x + ", " + fromCenter.y);
+		
+	}
+	
+	if (!this.needsRedraw)
+		return;
+
+	this.needsRedraw = false;
 	canvas.clear('rgb(200, 200, 200)');
 
 	// Draw the axes and the tics.
@@ -191,5 +266,7 @@ Scene.prototype.redraw = function () {
 		}
 	}
 
+
+	
 }
 
