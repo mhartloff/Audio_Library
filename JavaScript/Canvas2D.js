@@ -104,19 +104,14 @@ Canvas2D.prototype.getRightX = function () {
 
 Canvas2D.prototype.clientToCanvas = function (clientX, clientY) {
 	var rect = this.domElement.getBoundingClientRect();
-	return {
-		x: clientX - rect.left,
-		y: clientY - rect.top
-	};
+	return new Vector2(clientX - rect.left, clientY - rect.top);
 }
 
 // Get the distance from the center in canvas coordinates
-Canvas2D.prototype.distanceFromCenter = function (canvasX, canvasY) {
+Canvas2D.prototype.vecFromCenter = function (canvasX, canvasY) {
 	var rect = this.domElement.getBoundingClientRect();
-	return {
-		x: canvasX - (rect.width / 2),
-		y: canvasY - (rect.height / 2)		// invert
-	};
+	return new Vector2(canvasX - (rect.width / 2),
+							 canvasY - (rect.height / 2));		// Flip the Y
 }
 
 // Converts client coordinates generally returned by the event objects to the projection coordinates.
@@ -140,10 +135,8 @@ Canvas2D.prototype.sceneToCanvas = function (x, y) {
 Canvas2D.prototype.canvasToScene = function (x, y) {
 	if (this.invertY)
 		y = this.height - y;
-	return {
-		x: x / this.pixelsPerUnit + this.xLeft,
-		y: y / this.pixelsPerUnit + this.yLow
-	};
+	return new Vector2(x / this.pixelsPerUnit + this.xLeft,
+						    y / this.pixelsPerUnit + this.yLow);
 }
 
 // Only forwards the message if it is within the canvas element.
@@ -299,24 +292,35 @@ Canvas2D.prototype._onTouchEnd = function (touchEvent) {
 
 /* -- DRAW FUNCTIONALITY ----------------- */
 
+// Draw a line in canvas coordinates using Vector2s
+Canvas2D.prototype.drawLineVC = function (p1 /* Vector2 */, p2 /* Vector2 */, color) {
+	
+	this.drawLineC(p1.x, p1.y, p2.x, p2.y, color);
+}
+
+// Draw a line in canvas coordinates
+Canvas2D.prototype.drawLineC = function (x1, y1, x2, y2, color) {
+	this.context.strokeStyle = color;
+	this.context.beginPath();
+	this.context.moveTo(x1, y1);
+	this.context.lineTo(x2, y2);
+	this.context.stroke();
+}
+
 // Coordinates are in local projection coordinates.
 Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {
 
 	var start = this.sceneToCanvas(x1, y1);
 	var end = this.sceneToCanvas(x2, y2);
-	this.context.strokeStyle = color;
-	this.context.beginPath();
-	this.context.moveTo(start.x, start.y);
-	this.context.lineTo(end.x, end.y);
-	this.context.stroke();
+	this.drawLineC(start.x, start.y, end.x, end.y);
 }
 
-// Draw a circle using canvas coordinates
-Canvas2D.prototype.drawCircleC = function (canvasX, canvasY, canvasRad, outlineColor, fillColor) {
+// Draw a circle using canvas coordinates.  Angles in radians.
+Canvas2D.prototype.drawCircleC = function (canvasX, canvasY, canvasRad, outlineColor, fillColor, startAngle /* opt */, endAngle /* opt */) {
 	
 	var context = this.context;
 	context.beginPath();
-	context.arc(canvasX, canvasY, canvasRad, 0 /* start angle */, 2 * Math.PI /* end angle */); 
+	context.arc(canvasX, canvasY, canvasRad, startAngle ? startAngle : 0, endAngle ? endAngle : 2 * Math.PI); 
 		
 	if (fillColor)  {
 		context.fillStyle = fillColor;
@@ -329,12 +333,26 @@ Canvas2D.prototype.drawCircleC = function (canvasX, canvasY, canvasRad, outlineC
 }
 
 // Draw a circle.  If outlineColor or fillColor are null, do not draw those.  x, y, and rad are in scene space.
-Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor) {
+Canvas2D.prototype.drawCircle = function (x, y, radius, outlineColor, fillColor, startAngle /* opt */, endAngle /* opt */) {
 
 	var canvasCoord = this.sceneToCanvas(x, y);
 	var canvasRad = radius * this.pixelsPerUnit;
 
-	this.drawCircleC(canvasCoord.x, canvasCoord.y, canvasRad, outlineColor, fillColor);
+	this.drawCircleC(canvasCoord.x, canvasCoord.y, canvasRad, outlineColor, fillColor, startAngle, endAngle);
+}
+
+// Draw a rectangle in canvas coordinates
+Canvas2D.prototype.drawRectangleC = function (x, y, width, height, outlineColor, fillColor) {
+	var context = this.context;
+	
+	if (fillColor)  {
+		context.fillStyle = fillColor;
+		context.fillRect(x, y, width, height);
+	}
+	if (outlineColor) {
+		context.strokeStyle = outlineColor;
+		context.strokeRect(x, y, width, height);
+	}
 }
 
 // Draw a rectangle.  If outlineColor or fillColor are null, do not draw those.  x and y are in scene coordinates.
@@ -345,14 +363,7 @@ Canvas2D.prototype.drawRectangle = function (x, y, width, height, outlineColor, 
 	if (this.invertY)
 		h = -h;
 
-	if (fillColor)  {
-		context.fillStyle = fillColor;
-		context.fillRect(p.x, p.y, width * this.pixelsPerUnit, h);
-	}
-	if (outlineColor) {
-		context.strokeStyle = outlineColor;
-		context.strokeRect(p.x, p.y, width * this.pixelsPerUnit, h);
-	}
+	this.drawRectangleC(p.x, p.y, width * this.pixelsPerUnit, h, outlineColor, fillColor);
 }
 
 Canvas2D.prototype.drawText = function (text, x, y, color) {
