@@ -54,6 +54,10 @@ Range.prototype.isValid = function () {
     return this.start <= this.end;
 };
 
+Range.prototype.contains = function (val) {
+	return this.isValid() && val >= this.start && val <= this.end;
+}
+
 // Reduces the range to that which is included in both ranges.
 Range.prototype.inclusive = function(other /* Range */) {
     
@@ -73,6 +77,9 @@ function Vector2 (x, y) {
 	this.y = y;
 }
 
+Vector2.prototype.clone = function () {
+    return new Vector2(this.x, this.y);
+};
 
 // Returns the counter clockwise perpedicular to this ray.
 Vector2.prototype.perpedicular = function () {
@@ -81,6 +88,12 @@ Vector2.prototype.perpedicular = function () {
 
 Vector2.prototype.length = function () {
 	return Math.sqrt(this.x * this.x + this.y * this.y);
+};
+
+Vector2.prototype.setLength = function (newLength) {
+	var length = this.length();
+	this.mult(newLength / length);
+	return this;
 };
 
 Vector2.prototype.distance = function (other /* Vector2 */) {
@@ -140,6 +153,34 @@ Vector2.prototype.normalize = function () {
 	this.div(this.length());
 	return this;
 };
+
+Vector2.prototype.normalized = function () {
+   var result = this.clone();
+   result.div(this.length());
+   return result;
+}
+
+Vector2.prototype.angleBetween = function (other /* Vector2 */) {
+   var a = this.normalized();
+   var b = other.normalized();
+   var dot = a.dot(b);
+   return Math.acos(dot);
+}
+
+// The angle from 0,1, returned in radians.  Range = {0, 2 * PI}
+Vector2.prototype.angle = function () {
+	var p = this.normalized();
+		
+	var angle = Math.acos(p.x);	// This will return a value between 
+	if (p.y < 0)
+		angle = Math.PI + (Math.PI - angle);
+	return angle;
+}
+
+Vector2.prototype.toString = function (precision) {
+	var p = precision ? precision : 4;
+   return "X: " + this.x.toFixed(p) + "\tY: " + this.y.toFixed(p);
+}
 
 
 
