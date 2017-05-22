@@ -14,13 +14,25 @@ function Scene() {
 	// Params that may be set
 	this.touchMinZone = 50;		// The radius from the center where if a touch occurs within, it has no effect.
 	this.touchMaxZone = 200;	// The radius from the center where if the touch is any further it has no additional effect. 
-	this.maxVelocity = 3.0;	// The fastest in units / pixel that the user can move.
+	this.maxVelocity = 3.0;		// The fastest in meters / sec that the user can move forward.
+	this.maxSideVelocity = 2.0;// The fastest in meters / sec that the user can move to the side.
+	this.maxBackVelocity = 2.0;// The fastest in meters / sec that the user can move backwards.
 
 	// Graphics and UI
 	this.canvas = null;			// Canvas2D object which the scene is displayed (optional)
 	this.needsRedraw = false;
 	this.lastRedrawTime = null;
 	this.selectedObject = null;
+
+	{
+		// Settings that effect the range of movement allowed.
+		this.rSideRange1 = new Range(MathExt.degToRad(360 - 20), MathExt.degToRad(360));
+		this.rSideRange2 = new Range(MathExt.degToRad(0), MathExt.degToRad(20));
+		this.forwardRange = new Range(MathExt.degToRad(270 - 35), MathExt.degToRad(270 + 35));
+		this.lSideRange = new Range(MathExt.degToRad(180 - 20), MathExt.degToRad(180 + 20));
+		this.backRange = new Range(MathExt.degToRad(90 - 30), MathExt.degToRad(90 + 30));
+		this.rotateSize = 40;  // pixels from the min circle that the 'rotate only' circle will lie.
+	}
 
 	// Touch params
 	this.lastTouchPos = null;	// The position of the touch the last time it was recorded.
@@ -97,7 +109,7 @@ Scene.prototype.setPlayerPosition = function (xOrVec, y /* opt */, z /* opt */) 
 Scene.prototype.setOrientation = function (orientation /* Matrix */) {
 	this.orientation.set(orientation);
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
-	// [forward.x, forward.y, forward.z, up.x, up.y, up.z]
+	// setOrientation: [forward.x, forward.y, forward.z, up.x, up.y, up.z]
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
 	this.updateEarInfo();
 	this.needsRedraw = true;
@@ -115,7 +127,7 @@ Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */,
 Scene.prototype.getPlayerDirectionA = function () {
 	var dir = this.getPlayerDirection();
 	var vec2 = new Vector2(dir.x, dir.z);
-	return vec2.orientation();
+	return vec2.angle();
 }
 
 // Get the player's forward orientation
@@ -132,7 +144,7 @@ Scene.prototype.setPlayerDirectionA = function (dir /* Number */)
 
 // Set a player's direction on the xz plane.
 Scene.prototype.setPlayerDirection = function (dir /* Vec3 */)  {
-	this.setOrientationAxes(dir.cross(new Vector(0, 1, 0)), new Vector(1, 0, 0), dir);
+	this.setOrientationAxes(dir.cross(new Vector(0, 1, 0)), new Vector(0, 1, 0), dir);
 }
 
 // Rotates the player on the xz plane
@@ -259,12 +271,6 @@ Scene.prototype.onKeyDown = function (keyCode, x, z) {
 	return handled;
 }
 
-var rSideRange1 = new Range(MathExt.degToRad(360 - 20), MathExt.degToRad(360));
-var rSideRange2 = new Range(MathExt.degToRad(0), MathExt.degToRad(20));
-var forwardRange = new Range(MathExt.degToRad(270 - 45), MathExt.degToRad(270 + 45));
-var lSideRange = new Range(MathExt.degToRad(180 - 20), MathExt.degToRad(180 + 20));
-var backRange = new Range(MathExt.degToRad(90 - 20), MathExt.degToRad(90 + 20));
-
 // Move the player according to any touches currently 
 Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	
@@ -286,43 +292,80 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	var touch = canvas.getFirstTouch();
 	var vecFromCenter = canvas.vecFromCenter(touch.canvasX, touch.canvasY);
 	var magnitude = vecFromCenter.length();
-	var angle = vecFromCenter.orientation();
+	var angle = vecFromCenter.angle();
 	
 	// Update which zone the touch is in.
-	if (magnitude > this.touchMinZone) {
-		if (forwardRange.contains(angle) && (this.moveMode == "none" || this.moveMode == "head"))  {
-			this.moveMode = "forward";
-			this.moveInitialAngle = this.getPlayerDirectionA();
-		}
-		else if (lSideRange.contains(angle) && (this.moveMode == "none" || this.moveMode == "head"))  {
-			this.moveMode = "left";
-		}
-		else if ((rSideRange1.contains(angle) || rSideRange2.contains(angle)) && (this.moveMode == "none" || this.moveMode == "head"))  {
-			this.moveMode = "right";
-		}
-		else if (backRange.contains(angle) && (this.moveMode == "none" || this.moveMode == "head"))  {
-			this.moveMode = "back";
+	if (magnitude >= this.touchMinZone) {
+		if (this.moveMode == "none") {
+			if (this.forwardRange.contains(angle))  {
+				this.moveMode = "forward";
+				this.moveInitialAngle = this.getPlayerDirectionA();
+			}
+			else if (this.lSideRange.contains(angle))  {
+				this.moveMode = "left";
+				this.moveInitialAngle = this.getPlayerDirectionA();
+			}
+			else if (this.rSideRange1.contains(angle) || this.rSideRange2.contains(angle))  {
+				this.moveMode = "right";
+				this.moveInitialAngle = this.getPlayerDirectionA();
+			}
+			else if (this.backRange.contains(angle))  {
+				this.moveMode = "back";
+				this.moveInitialAngle = this.getPlayerDirectionA();
+			}
 		}
 	}
-	else if (Math.abs(vecFromCenter.x) < 30 && Math.abs(vecFromCenter.y) < 50 && (this.moveMode == "none")) {
-		this.moveMode = "head";
+	else {
+		this.lastTouchPos = null;
+		this.moveMode = "none";
+		return;
 	}
-
+	//else if (Math.abs(vecFromCenter.x) < 30 && Math.abs(vecFromCenter.y) < 50 && (this.moveMode == "none")) {
+	//	this.moveMode = "head";
+	//}
+					
 	console.log(this.moveMode);
-			
+
 	var zoneRange = this.touchMaxZone - this.touchMinZone;
 	magnitude -= this.touchMinZone;
 	magnitude = Math.min(zoneRange, magnitude);
 	
 	if (this.moveMode == "forward") {	
 		vecFromCenter.normalize();
-		vecFromCenter.mult((magnitude / zoneRange) * this.maxVelocity * (interval / 1000));
-		this.setPlayerDirectionA(this.moveInitialAngle + angle);
-		//this.movePlayer(new Vector(-vecFromCenter.x, 0.0, -vecFromCenter.y));
-		this.movePlayer(new Vector(0.0, 0.0, vecFromCenter.length()));
+		this.setPlayerDirectionA(this.moveInitialAngle + (angle - MathExt.degToRad(270)));
+		magnitude -= this.rotateSize;		// Moving within the inner circle will reorient the player without moving them.
+		if (magnitude > 0) {
+			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxVelocity * (interval / 1000);
+			this.movePlayer(new Vector(0.0, 0.0, moveLength));
+		}
 	}
-
-
+	if (this.moveMode == "left") {
+		vecFromCenter.normalize();
+		this.setPlayerDirectionA(this.moveInitialAngle + (angle - MathExt.degToRad(180)));
+		magnitude -= this.rotateSize;		
+		if (magnitude > 0) {
+			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxSideVelocity * (interval / 1000);
+			this.movePlayer(new Vector(-moveLength, 0.0, 0.0))
+		}
+	}
+	if (this.moveMode == "right") {
+		vecFromCenter.normalize();
+		this.setPlayerDirectionA(this.moveInitialAngle + angle);
+		magnitude -= this.rotateSize;		
+		if (magnitude > 0) {
+			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxSideVelocity * (interval / 1000);
+			this.movePlayer(new Vector(moveLength, 0.0, 0.0))
+		}
+	}
+	if (this.moveMode == "back") {
+		vecFromCenter.normalize();
+		this.setPlayerDirectionA(this.moveInitialAngle + (angle - MathExt.degToRad(90)));
+		magnitude -= this.rotateSize;
+		if (magnitude > 0) {
+			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxBackVelocity * (interval / 1000);
+			this.movePlayer(new Vector(0.0, 0.0, -moveLength))
+		}
+	}
 		
 }
 
@@ -396,28 +439,40 @@ Scene.prototype.redraw = function () {
 	canvas.drawCircleC(center.x, center.y, this.touchMinZone, "rgb(100, 150, 240)", null /* fill */);		// The inner circle
 	
 	
-	if (this.moveMode == "none" || this.moveMode == "head") {		// The lines indicating the area where the 'forward' movement can be started.
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(100, 150, 240)", null /* fill */, forwardRange.start, forwardRange.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, forwardRange.start, "rgb(100, 150, 240)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, forwardRange.end, "rgb(100, 150, 240)");
-		canvas.drawRectangleC(center.x - 50, center.y - 20, 100, 40, "rgb(180, 50, 50)");	// the 'head' region
-	}
-	if (this.moveMode == "none" || this.moveMode == "head" || this.moveMode == "left" || this.moveMode == "right") {
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(150, 240, 100)", null /* fill */, rSideRange1.start, rSideRange2.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, rSideRange1.start, "rgb(150, 240, 100)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, rSideRange2.end, "rgb(150, 240, 100)");
+	if (this.moveMode == "none") {	
+		// forward area
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(100, 150, 240)", null /* fill */, this.forwardRange.start, this.forwardRange.end);
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.forwardRange.start, "rgb(100, 150, 240)");
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.forwardRange.end, "rgb(100, 150, 240)");
 
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(150, 240, 100)", null /* fill */, lSideRange.start, lSideRange.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, lSideRange.start, "rgb(150, 240, 100)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, lSideRange.end, "rgb(150, 240, 100)");
-	}
-	if (this.moveMode == "none" || this.moveMode == "head" || this.moveMode == "back") {
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(240, 150, 100)", null /* fill */, backRange.start, backRange.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, backRange.start, "rgb(240, 150, 100)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, backRange.end, "rgb(240, 150, 100)");
+		// left area
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(150, 240, 100)", null /* fill */, this.lSideRange.start, this.lSideRange.end);
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.lSideRange.start, "rgb(150, 240, 100)");
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.lSideRange.end, "rgb(150, 240, 100)");
+
+		// right area
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(150, 240, 100)", null /* fill */, this.rSideRange1.start, this.rSideRange2.end);
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.rSideRange1.start, "rgb(150, 240, 100)");
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.rSideRange2.end, "rgb(150, 240, 100)");
+
+		// back area
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(240, 150, 100)", null /* fill */, this.backRange.start, this.backRange.end);
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.start, "rgb(240, 150, 100)");
+		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.end, "rgb(240, 150, 100)");
+
+		//canvas.drawRectangleC(center.x - 50, center.y - 20, 100, 40, "rgb(180, 50, 50)");	// the 'head' region
 	}
 	if (this.moveMode == "forward") {
+		canvas.drawCircleC(center.x, center.y, this.touchMinZone + this.rotateSize, "rgb(130, 180, 250)", null /* fill */);	// The middle circle
 		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(100, 150, 240)", null /* fill */);	// The outer circle where movement in any direction is valid.
+	}
+	if (this.moveMode == "left" || this.moveMode == "right") {
+		canvas.drawCircleC(center.x, center.y, this.touchMinZone + this.rotateSize, "rgb(180, 250, 130)", null /* fill */);	// The middle circle
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(150, 240, 100)", null /* fill */);	// The outer circle where movement in any direction is valid.	
+	}
+	if (this.moveMode == "back") {
+		canvas.drawCircleC(center.x, center.y, this.touchMinZone + this.rotateSize, "rgb(250, 180, 130)", null /* fill */);	// The middle circle
+		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(240, 150, 100)", null /* fill */);	// The outer circle where movement in any direction is valid.	
 	}
 	
 	var touch = canvas.getFirstTouch();

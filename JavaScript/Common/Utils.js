@@ -160,7 +160,7 @@ Vector2.prototype.normalized = function () {
    return result;
 }
 
-Vector2.prototype.angle = function (other /* Vector2 */) {
+Vector2.prototype.angleBetween = function (other /* Vector2 */) {
    var a = this.normalized();
    var b = other.normalized();
    var dot = a.dot(b);
@@ -168,7 +168,7 @@ Vector2.prototype.angle = function (other /* Vector2 */) {
 }
 
 // The angle from 0,1, returned in radians.  Range = {0, 2 * PI}
-Vector2.prototype.orientation = function () {
+Vector2.prototype.angle = function () {
 	var p = this.normalized();
 		
 	var angle = Math.acos(p.x);	// This will return a value between 
