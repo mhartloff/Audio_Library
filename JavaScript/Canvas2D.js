@@ -11,6 +11,14 @@ function Canvas2D(canvasElement) {
    this.context.font = "12px Arial";
    this.invertY = false;
 
+	this.lookAt = new Vector2(0, 0);
+	this.upDir = new Vector(0, 1, 0);
+	this.projMatrix = new Matrix();
+	this.rotMatrix = new Matrix();
+	this.translationMatrix = new Matrix();
+	this.matrix = new Matrix();
+	//this.invMatrix = new Matrix();
+
 	this.mousePosition = null;		// The last location of the mouse cursor, in canvas coordinates.
    this.selectedPos = null;		// The last position selected by the user, in scene space.
 	this.limitTo1Touch = false;
@@ -72,7 +80,14 @@ Canvas2D.prototype.zoom = function (factor) {
 	var center = this.getCenter();
 	this.pixelsPerUnit *= factor;
 	this.setCenter(center.x, center.y);
+	this.updateMatrices();
+}
 
+// Set which direction is up, in scene coordinates
+Canvas2D.prototype.setUpDirection = function (x, y) {
+	this.upDir.set(x, y, 0);
+	this.upDir.normalize();
+	this.updateMatrices();
 }
 
 Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit, invertY) {
@@ -80,6 +95,10 @@ Canvas2D.prototype.setProjection = function (xCenter, yCenter, pixelsPerUnit, in
 	this.yLow = yCenter - (this.height / 2.0 / pixelsPerUnit);
 	this.pixelsPerUnit = pixelsPerUnit;
 	this.invertY = invertY ? false : invertY;
+
+	this.lookAt.x = xCenter;
+	this.lookAt.y = yCenter;
+	this.updateMatrices();
 }
 
 Canvas2D.prototype.setProjectionFromTopLeft = function (xLeft, yTop, pixelsPerUnit) {
@@ -124,6 +143,29 @@ Canvas2D.prototype.vecFromCenter = function (canvasX, canvasY) {
 							 canvasY - (rect.height / 2));		// Flip the Y
 }
 
+Canvas2D.prototype.updateProjMatrix = function () {
+	var rect = this.domElement.getBoundingClientRect();
+	this.projMatrix.setToTranslation(rect.width / 2.0, rect.height / 2.0);
+	this.projMatrix.e[0] = this.pixelsPerUnit;
+	this.projMatrix.e[5] = this.pixelsPerUnit;
+}
+
+// Matrix stuff
+Canvas2D.prototype.updateMatrices = function () {
+
+	this.updateProjMatrix();
+	
+	// Update the view matrix
+	var zVec = new Vector(0, 0, 1);
+	this.rotMatrix.setFromOrientation(zVec, this.upDir);
+	this.translationMatrix.setToTranslation(-this.lookAt.x, -this.lookAt.y);
+	
+	var resultMatrix = new Matrix();
+	this.rotMatrix.multiply(this.translationMatrix, resultMatrix);
+	this.projMatrix.multiply(resultMatrix, this.matrix /* out */);
+	//this.matrix.invert(this.invMatrix /* out */);
+};
+
 // Converts client coordinates generally returned by the event objects to the projection coordinates.
 Canvas2D.prototype.clientToScene = function (clientX, clientY) {
 	var p = this.clientToCanvas(clientX, clientY);
@@ -133,13 +175,9 @@ Canvas2D.prototype.clientToScene = function (clientX, clientY) {
 // Transform a 2D point from scene space to pixel space for drawing.
 Canvas2D.prototype.sceneToCanvas = function (x, y) {
 	
-	var p = {
-		x: ((x - this.xLeft) * this.pixelsPerUnit),
-		y: ((y - this.yLow) * this.pixelsPerUnit)
-	};
-	if (this.invertY)
-		p.y = this.height - p.y;		// It's actually 'this much from the bottom' in the inversion case.
-	return p;
+	var vec = new Vector2(x, y);
+	this.matrix.applyToVec2(vec);
+	return vec;
 }
 
 Canvas2D.prototype.canvasToScene = function (x, y) {

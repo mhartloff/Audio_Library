@@ -14,9 +14,9 @@ function Scene() {
 	// Params that may be set
 	this.touchMinZone = 50;		// The radius from the center where if a touch occurs within, it has no effect.
 	this.touchMaxZone = 200;	// The radius from the center where if the touch is any further it has no additional effect. 
-	this.maxVelocity = 3.0;		// The fastest in meters / sec that the user can move forward.
-	this.maxBackVelocity = 2.0;// The fastest in meters / sec that the user can move backwards.
-	this.maxRotateVelocity = MathExt.degToRad(270.0);	// Max rotation velocity in radians / sec
+	this.maxVelocity = 1.5;		// The fastest in meters / sec that the user can move forward.
+	this.maxBackVelocity = 1.0;// The fastest in meters / sec that the user can move backwards.
+	this.maxRotateVelocity = MathExt.degToRad(180.0);	// Max rotation velocity in radians / sec
 
 
 	// Graphics and UI
@@ -113,6 +113,12 @@ Scene.prototype.setOrientation = function (orientation /* Matrix */) {
 	// setOrientation: [forward.x, forward.y, forward.z, up.x, up.y, up.z]
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
 	this.updateEarInfo();
+
+	if (this.canvas) {
+		var up = this.getPlayerDirection();
+		this.canvas.setUpDirection(-up.x, -up.z);
+	}
+
 	this.needsRedraw = true;
 }
 
@@ -121,6 +127,12 @@ Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */,
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
 	this.updateEarInfo();
+
+	if (this.canvas) {
+		var up = this.getPlayerDirection();
+		this.canvas.setUpDirection(-up.x, -up.z);
+	}
+
 	this.needsRedraw = true;
 }
 
@@ -388,9 +400,11 @@ Scene.prototype.redraw = function () {
 	canvas.clear('rgb(230, 230, 230)');
 
 	// Draw the axes and the tics.
-	canvas.drawLine(-1000, 0, 1000, 0, "rgb(50, 50, 50)");
-	canvas.drawLine(0, -1000, 0, 1000, "rgb(50, 50, 50)");
-
+	for (var x = -50; x <= 50; x += 10)
+		canvas.drawLine(x, -50, x, 50, "rgb(150, 180, 150)");
+	for (var y = -50; y <= 50; y += 10)
+		canvas.drawLine(-50, y, 50, y, "rgb(180, 150, 150)");
+	
 	var tic = .25;
 	canvas.drawLine(-tic, 5, tic, 5, "rgb(100, 100, 100)");	// draw a tick at 5.
 	canvas.drawText("+5X", 4.6, -tic * 1.25);

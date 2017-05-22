@@ -75,10 +75,15 @@ Range.prototype.isWithin = function (min, max) {
 function Vector2 (x, y) {
 	this.x = x;
 	this.y = y;
-}
+};
 
 Vector2.prototype.clone = function () {
     return new Vector2(this.x, this.y);
+};
+
+Vector2.prototype.set = function (x, y) {
+	this.x = x;
+	this.y = y;
 };
 
 // Returns the counter clockwise perpedicular to this ray.
@@ -681,6 +686,16 @@ Matrix.prototype.reset = function ()
 	return this;
 };
 
+Matrix.prototype.applyToVec2 = function (vec /* Vector2 */) {
+	var e = this.e;
+	var x, y;
+
+	x = vec.x * e[0] + vec.y * e[4] + e[12];
+	y = vec.x * e[1] + vec.y * e[5] + e[13];
+	vec.set(x, y);
+	return vec;
+}
+
 Matrix.prototype.applyToVector = function (vec /* Vector */) {
 	var e = this.e;
 	var x, y, z;
@@ -773,7 +788,8 @@ Matrix.prototype.setAxes = function (xVec, yVec, zVec) {
 	var e = this.e;
 	e[0] = xVec.x; e[1] = xVec.y; e[2] = xVec.z;
 	e[4] = yVec.x; e[5] = yVec.y; e[6] = yVec.z;
-	e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
+	if (zVec)
+		e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
 };
 
 // Set the orientation of the axes where the z vec goes into the screen.
@@ -781,7 +797,8 @@ Matrix.prototype.setAxes2 = function (xVec, yVec, zVec) {
 	var e = this.e;
 	e[0] = xVec.x; e[4] = xVec.y; e[8] = xVec.z;
 	e[1] = yVec.x; e[5] = yVec.y; e[9] = yVec.z;
-	e[2] = zVec.x; e[6] = zVec.y; e[10] = zVec.z;
+	if (zVec)
+		e[2] = zVec.x; e[6] = zVec.y; e[10] = zVec.z;
 };
 
 
@@ -789,7 +806,9 @@ Matrix.prototype.setToTranslation = function (x, y, z)  {
 	var e = this.e;
 	e[0] = 1; e[4] = 0; e[8] = 0; e[12] = x;
 	e[1] = 0; e[5] = 1; e[9] = 0; e[13] = y;
-	e[2] = 0; e[6] = 0; e[10] = 1; e[14] = z;
+	e[2] = 0; e[6] = 0; e[10] = 1; 
+	if (z !== undefined)
+		e[14] = z;
 	e[3] = 0; e[7] = 0; e[11] = 0; e[15] = 1;
 	return this;
 };
@@ -797,10 +816,19 @@ Matrix.prototype.setToTranslation = function (x, y, z)  {
 Matrix.prototype.translate = function (x, y, z)
 {
 	var e = this.e;
-	e[12] += e[0] * x + e[4] * y + e[8] *  z;
-	e[13] += e[1] * x + e[5] * y + e[9] *  z;
-	e[14] += e[2] * x + e[6] * y + e[10] * z;
-	e[15] += e[3] * x + e[7] * y + e[11] * z;
+
+	if (z === undefined) {
+		e[12] += e[0] * x + e[4] * y;
+		e[13] += e[1] * x + e[5] * y;
+		e[14] += e[2] * x + e[6] * y;
+		e[15] += e[3] * x + e[7] * y;
+	}
+	else {
+		e[12] += e[0] * x + e[4] * y + e[8] *  z;
+		e[13] += e[1] * x + e[5] * y + e[9] *  z;
+		e[14] += e[2] * x + e[6] * y + e[10] * z;
+		e[15] += e[3] * x + e[7] * y + e[11] * z;
+	}
 	return this;
 };
 
@@ -884,7 +912,7 @@ Matrix.prototype.setFromTransform = function (center, yVector, xVector) {
 	zVec.normalize();
 	xVec = yVec.cross(zVec);
 
-	this.translate(offset.x, offset.y, offset.z);
+	this.translate(offset.x, offset.y, offset.z ? offset.z : 0.0);	// may be a vector2
 	this.setAxes(xVec, yVec, zVec);
 };
 
