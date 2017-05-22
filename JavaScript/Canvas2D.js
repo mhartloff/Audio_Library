@@ -19,6 +19,7 @@ function Canvas2D(canvasElement) {
 	canvasElement.className += canvasElement.className ? ' canvas2D' : 'canvas2D';	// add the canvas2D css.
    canvasElement.onmousedown = function (ev) { self._onMouseDown(ev); };
    canvasElement.onmouseup = function (ev) { self._onMouseUp(ev); }
+	canvasElement.onmousewheel = function (ev) { self._onMouseWheel(ev); }
    document.addEventListener('mousemove', function (ev) { self._onMouseMove(ev); }, false);
    document.addEventListener('keydown', function (ev) { self._onKeyDown(ev); }, false);
 	document.addEventListener('touchstart',  function (ev) { self._onTouchStart(ev); }, false);
@@ -31,6 +32,7 @@ function Canvas2D(canvasElement) {
    this.onMouseDown = null;		// function (x, y)
    this.onMouseUp = null;			// function (x, y)
    this.onMouseMove = null;		// function (x, y)
+	this.onMouseWheel = null;		// function (delta)
 	
 	// The bottom left in projection coordinate system.  Note that the y is inverted so the bottom is the lowest y.
 	this.xLeft = 0;	 
@@ -47,8 +49,8 @@ Canvas2D.prototype.clear = function (color)  {
 
 // Get the center in scene coordinates
 Canvas2D.prototype.getCenter = function () {
-	return { x: this.xLeft + (this.width / 2.0 / pixelsPerUnit),
-				y: this.yLow + (this.height / 2.0 / pixelsPerUnit)
+	return { x: this.xLeft + (this.width / 2.0 / this.pixelsPerUnit),
+				y: this.yLow + (this.height / 2.0 / this.pixelsPerUnit)
 	};
 }
 
@@ -62,6 +64,14 @@ Canvas2D.prototype.getCenterC = function () {
 // Set the center of the canvas in scene coordinates
 Canvas2D.prototype.setCenter = function (x, y) {
 	this.setProjection(x, y, this.pixelsPerUnit, this.invertY)
+}
+
+// Zoom the scene by a factor.  1.05 zooms in 5%, 95% would zoom out 5%.
+Canvas2D.prototype.zoom = function (factor) {
+
+	var center = this.getCenter();
+	this.pixelsPerUnit *= factor;
+	this.setCenter(center.x, center.y);
 
 }
 
@@ -168,6 +178,16 @@ Canvas2D.prototype._onMouseMove = function (ev) {
 
 		if (this.onMouseMove)
 			this.onMouseMove(s.x, s.y);
+	}
+}
+
+Canvas2D.prototype._onMouseWheel = function (ev) {
+	var delta = ev.deltaY;
+
+	if (this.onMouseWheel) {
+		var handled = this.onMouseWheel(ev.deltaY);
+		if (handled)
+			ev.preventDefault();
 	}
 }
 
@@ -312,7 +332,7 @@ Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {
 
 	var start = this.sceneToCanvas(x1, y1);
 	var end = this.sceneToCanvas(x2, y2);
-	this.drawLineC(start.x, start.y, end.x, end.y);
+	this.drawLineC(start.x, start.y, end.x, end.y, color);
 }
 
 // Draw a circle using canvas coordinates.  Angles in radians.

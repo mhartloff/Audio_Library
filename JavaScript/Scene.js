@@ -63,6 +63,7 @@ Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); };
 	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); };
 	this.canvas.onMouseMove =	function (x, z) { self.onMouseMove(x, z); };
+	this.canvas.onMouseWheel = function (delta) { return self.onMouseWheel(delta); };
 	this.canvas.onKeyDown = function (key, x, z) { return self.onKeyDown(key, x, z); };	// returns if it was handled
 
 	// Touch functionality
@@ -218,6 +219,15 @@ Scene.prototype.onMouseMove = function (x, z) {
 	if (this.selectedObject) {
 		this.selectedObject.setPosition(new Vector(x, 0, z));
 	}
+}
+
+// Windows standard has a delta of 72.8 and -72.8 per click.
+Scene.prototype.onMouseWheel = function (delta) {
+	var clicks = delta / 72.8;
+	this.canvas.zoom(1.0 + (0.05 * clicks));
+	this.needsRedraw = true;
+
+	return true;
 }
 
 Scene.prototype.onTouchStart = function (touchEvent) {
