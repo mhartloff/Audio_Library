@@ -34,6 +34,13 @@
 
 		function onLoad() {
 
+			var container = document.getElementById("canvas_container");
+			var canvas = document.createElement("canvas");
+			canvas.setAttribute("width", Math.min(screen.width - 30, 800));
+			canvas.setAttribute("height", Math.min(screen.height - 140, 1000));
+			canvas.setAttribute("tabindex", 1);	// tabindex on canvas makes it focusable.
+			container.appendChild(canvas);
+
 		   DeviceMotion.init();
 		   WebAudio.init();
 			WebAudio.loadSoundSource("Sounds/Owl.wav", "owl");
@@ -46,7 +53,7 @@
 			WebAudio.loadSoundSource("Sounds/1000htz.wav", "1000htz");
 
 			this.scene = new Scene();
-			this.scene.setCanvas(document.getElementById("scene_canvas"));
+			this.scene.setCanvas(canvas);
 		
 			this.bird = new SceneObject(WebAudio.getSoundSource("sword"),
          {
@@ -84,7 +91,9 @@
 
 		
 	</script>
-    
+   
+	<div id="canvas_container"></div>
+	 
 	<h3>Web Audio API Demo</h3>
 
    <br>
@@ -102,8 +111,8 @@
    <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
    
    Position Info (+Y comes out of the screen) <br>
-	<canvas id="scene_canvas" width="400" height="450"></canvas>
-
+	
+	
 	<!-- Container for outputting the phone orientation -->
 	<div id="debug"></div>
 

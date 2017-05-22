@@ -12,8 +12,9 @@ function Scene() {
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
 
 	// Params that may be set
-	this.touchMinZone = 50;		// The radius from the center where if a touch occurs within, it has no effect.
-	this.touchMaxZone = 200;	// The radius from the center where if the touch is any further it has no additional effect. 
+	this.deadZoneRadius = 50;		// The radius from the center where if a touch occurs within, it has no effect.
+	this.rotateMaxRadius = 100;  // pixels from the min circle that the 'rotate only' circle will lie.
+	this.moveMaxRadius = 200;	// The radius from the center where if the touch is any further it has no additional effect. 
 	this.maxVelocity = 1.5;		// The fastest in meters / sec that the user can move forward.
 	this.maxBackVelocity = 1.0;// The fastest in meters / sec that the user can move backwards.
 	this.maxRotateVelocity = MathExt.degToRad(180.0);	// Max rotation velocity in radians / sec
@@ -30,7 +31,6 @@ function Scene() {
 		this.forwardRange1 = new Range(MathExt.degToRad(270 - 120), MathExt.degToRad(360));	// Split in 2 because it crosses the '0 line'
 		this.forwardRange2 = new Range(0, MathExt.degToRad(30));
 		this.backRange = new Range(MathExt.degToRad(90 - 30), MathExt.degToRad(90 + 30));
-		this.rotateSize = 40;  // pixels from the min circle that the 'rotate only' circle will lie.
 	}
 
 	// Touch params
@@ -58,7 +58,10 @@ Scene.prototype.destroy = function () {
 Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas = new Canvas2D(canvasElement);
 	this.canvas.setProjection(this.position.x, this.position.z, 40);	 // Center at 0, 0.  40 pixels per unit.
-	
+
+	this.moveMaxRadius = Math.min(this.canvas.width, this.canvas.height) / 2.0;
+	this.rotateMaxRadius = this.deadZoneRadius + (this.moveMaxRadius - this.deadZoneRadius) * 0.25;
+		
 	var self = this;
 	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); };
 	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); };
@@ -233,7 +236,7 @@ Scene.prototype.onMouseMove = function (x, z) {
 	}
 }
 
-// Windows standard has a delta of 72.8 and -72.8 per click.
+// Windows standard has a delta of 72.8 and -72.8 per click.  This currently zooms the debug scene.
 Scene.prototype.onMouseWheel = function (delta) {
 	var clicks = delta / 72.8;
 	this.canvas.zoom(1.0 + (0.05 * clicks));
@@ -317,7 +320,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	var angle = vecFromCenter.angle();		// In radians
 	
 	// Update which zone the touch is in.
-	if (magnitude >= this.touchMinZone && this.moveMode == "none") {
+	if (magnitude >= this.deadZoneRadius && this.moveMode == "none") {
 		if (this.forwardRange1.contains(angle) || this.forwardRange2.contains(angle))  {
 			this.moveMode = "forward";
 			this.moveInitialAngle = this.getPlayerDirectionA();
@@ -327,19 +330,19 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.moveInitialAngle = this.getPlayerDirectionA();
 		}
 	}
-	else if (magnitude < this.touchMinZone && this.moveMode == "back") { // the 'dead zone'
-		this.lastTouchPos = null;
-		this.moveMode = "none";
-		return;
+	else if (magnitude < this.deadZoneRadius) {
+		if (this.moveMode == "back") { // the 'dead zone'
+			this.lastTouchPos = null;
+			this.moveMode = "none";
+			return;	
+		}
 	}
 					
 	console.log(this.moveMode);
 
-	var zoneRange = this.touchMaxZone - this.touchMinZone;
-	magnitude -= this.touchMinZone;
-	magnitude = Math.min(zoneRange, magnitude);
+	magnitude = Math.min(this.moveMaxRadius, magnitude);
 	
-	if (this.moveMode == "forward") {	
+	if (this.moveMode == "forward" && magnitude >= this.deadZoneRadius) {	
 		// Update the orientation.  Make sure the orientation does not 'snap' to the new one.
 		var desiredAngle = this.moveInitialAngle + (angle - MathExt.degToRad(270));
 		maxAngleChange = this.maxRotateVelocity * (interval / 1000);
@@ -363,18 +366,20 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 
 		// Move the player
 		vecFromCenter.normalize();
-		magnitude -= this.rotateSize;		// Moving within the inner circle will reorient the player without moving them.
+		var moveRange = this.moveMaxRadius - this.rotateMaxRadius;
+		magnitude -= this.rotateMaxRadius;		// Moving within the inner circle will reorient the player without moving them.
 		if (magnitude > 0) {
-			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxVelocity * (interval / 1000);
+			var moveLength = vecFromCenter.length() * (magnitude / moveRange) * this.maxVelocity * (interval / 1000);
 			this.movePlayer(new Vector(0.0, 0.0, moveLength));
 		}
 	}
 	if (this.moveMode == "back" && this.backRange.contains(angle)) {
 		vecFromCenter.normalize();
+		var moveRange = this.moveMaxRadius - this.rotateMaxRadius;
 		this.setPlayerDirectionA(this.moveInitialAngle + (angle - MathExt.degToRad(90)));
-		magnitude -= this.rotateSize;
+		magnitude -= this.rotateMaxRadius;
 		if (magnitude > 0) {
-			var moveLength = vecFromCenter.length() * (magnitude / zoneRange) * this.maxBackVelocity * (interval / 1000);
+			var moveLength = vecFromCenter.length() * (magnitude / moveRange) * this.maxBackVelocity * (interval / 1000);
 			this.movePlayer(new Vector(0.0, 0.0, -moveLength))
 		}
 	}
@@ -450,28 +455,28 @@ Scene.prototype.redraw = function () {
 		canvas.drawLineVC(p1, p2, color);		
 	}
 	
-	canvas.drawCircleC(center.x, center.y, this.touchMinZone, "rgb(100, 150, 240)", null /* fill */);		// The inner circle
+	canvas.drawCircleC(center.x, center.y, this.deadZoneRadius, "rgb(100, 150, 240)", null /* fill */);		// The inner circle
 	
 	
 	if (this.moveMode == "none") {	
 		// forward area
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(100, 150, 240)", null /* fill */, this.forwardRange1.start, this.forwardRange2.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.forwardRange1.start, "rgb(100, 150, 240)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.forwardRange2.end, "rgb(100, 150, 240)");
+		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(100, 150, 240)", null /* fill */, this.forwardRange1.start, this.forwardRange2.end);
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.forwardRange1.start, "rgb(100, 150, 240)");
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.forwardRange2.end, "rgb(100, 150, 240)");
 
 		// back area
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(240, 150, 100)", null /* fill */, this.backRange.start, this.backRange.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.start, "rgb(240, 150, 100)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.end, "rgb(240, 150, 100)");
+		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(240, 150, 100)", null /* fill */, this.backRange.start, this.backRange.end);
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.start, "rgb(240, 150, 100)");
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.end, "rgb(240, 150, 100)");
 	}
 	if (this.moveMode == "forward") {
-		canvas.drawCircleC(center.x, center.y, this.touchMinZone + this.rotateSize, "rgb(130, 180, 250)", null /* fill */);	// The middle circle
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(100, 150, 240)", null /* fill */);	// The outer circle where movement in any direction is valid.
+		canvas.drawCircleC(center.x, center.y, this.deadZoneRadius + this.rotateMaxRadius, "rgb(130, 180, 250)", null /* fill */);	// The middle circle
+		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(100, 150, 240)", null /* fill */);	// The outer circle where movement in any direction is valid.
 	}
 	if (this.moveMode == "back") {
-		canvas.drawCircleC(center.x, center.y, this.touchMaxZone, "rgb(240, 150, 100)", null /* fill */, this.backRange.start, this.backRange.end);
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.start, "rgb(240, 150, 100)");
-		drawRadialLine(this.touchMinZone, this.touchMaxZone, this.backRange.end, "rgb(240, 150, 100)");
+		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(240, 150, 100)", null /* fill */, this.backRange.start, this.backRange.end);
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.start, "rgb(240, 150, 100)");
+		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.end, "rgb(240, 150, 100)");
 	}
 	
 	var touch = canvas.getFirstTouch();
