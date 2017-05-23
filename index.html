@@ -7,6 +7,8 @@
 
 	<link rel="stylesheet" href="css/main.css" />
 
+	<script src="Scripts/jquery-3.1.1.js"></script>
+
    <script src="JavaScript/Common/Utils.js"></script>
    <script src="JavaScript/Common/DeviceMotion.js"></script>
 
@@ -47,49 +49,89 @@
 			WebAudio.loadSoundSource("Sounds/Bird1.wav", "bird1");
 			WebAudio.loadSoundSource("Sounds/Bird2.wav", "bird2");
 			WebAudio.loadSoundSource("Sounds/Sword.wav", "sword");
-			//WebAudio.loadSoundSource("Sounds/beautiful_life.wav", "aceOfBass");
-			WebAudio.loadSoundSource("Sounds/Creek water sounds02 video03.mp3", "aceOfBass");
+			WebAudio.loadSoundSource("Sounds/Creek water sounds02 video03.mp3", "creek");
 			WebAudio.loadSoundSource("Sounds/Scream.wav", "Scream");
 			WebAudio.loadSoundSource("Sounds/1000htz.wav", "1000htz");
 
 			this.scene = new Scene();
 			this.scene.setCanvas(canvas);
 		
-			this.bird = new SceneObject(WebAudio.getSoundSource("sword"),
+			this.bird = createBirdObject();
+			this.creek = createCreekObject();
+			this.owl = createOwlObject();
+
+			//this.testSound = new SceneObject(
+			//{
+			//	position: new Vector(0, 0, -3),
+			//	soundType: SceneObject.SoundTypeEnum.test,
+			//	soundOptions: { outputCanvas: document.getElementById("analysis_canvas_1"),
+			//						mod: false },
+			//	alias: 'Test'
+			//});
+			
+			//this.scene.addObject(this.bird);
+			this.scene.addObject(this.creek);
+			//this.scene.addObject(this.owl);
+		};
+        
+		
+		function createBirdObject() {
+			var obj = new SceneObject(
          {
-            position: new Vector(3, 0, 0),
-            soundType: SceneObject.SoundTypeEnum.panner,
+            position: new Vector(5, 0, 0),
             alias: 'Birdy'
          });
+			
+			var behavior = function (pos, dir) {
+				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)  {
+					this.play(WebAudio.getSoundSource("bird1"));
+				}
+			};
+			obj.setBehavior(behavior);
 
-			this.aceOfBass = new SceneObject(WebAudio.getSoundSource("aceOfBass"),
+			return obj;
+		};
+
+		function createCreekObject() {
+			var obj = new SceneObject(
          {
-            position: new Vector(-3, 0, 0),
-            soundType: SceneObject.SoundTypeEnum.panner,
-            alias: 'Ace of Bass'
+            position: new Vector(-5, 0, 0),
+            alias: 'creek'
          });
+			
+			var behavior = function (pos, dir) {
+				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
+					this.play(WebAudio.getSoundSource("creek"), true);
+				else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 2)
+					this.stop();
+			};
+			obj.setBehavior(behavior);
 
-			this.testSound = new SceneObject(WebAudio.getSoundSource("1000htz"),
-			{
-				position: new Vector(0, 0, -3),
-				soundType: SceneObject.SoundTypeEnum.test,
-				soundOptions: { outputCanvas: document.getElementById("analysis_canvas_1"),
-									mod: false },
-				alias: 'Test'
-			});
+			return obj;
+		};
 
-			this.scene.addObject(this.bird);
-			this.scene.addObject(this.aceOfBass);
-			this.scene.addObject(this.testSound);
+		function createOwlObject() {
+			var obj = new SceneObject(
+         {
+            position: new Vector(0, 0, -5),
+            alias: 'owl'
+         });
+			
+			var behavior = function (pos, dir) {
+				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
+					this.play(WebAudio.getSoundSource("owl"), false);
+				
+			};
+			obj.setBehavior(behavior);
+
+			return obj;
 		}
-               
 		
       // Playing with local storage here...
 		//localStorage.setItem("lastPlayed", alias);
       //var lastPlayed = localStorage.getItem("lastPlayed");
       //document.getElementById("lastPlayed").innerText = lastPlayed ? lastPlayed : "none";
 
-		
 	</script>
    
 	<div id="canvas_container"></div>
@@ -98,9 +140,9 @@
 
    <br>
     
-   <input type="button" value="BIRDY" onclick="bird.play();" />
-   <input type="button" value="ACE OF BASS" onclick="aceOfBass.play(true);" />
-   <input type="button" value="TEST" onclick="testSound.play(); " /><br /><br>
+   <!--<input type="button" value="BIRDY" onclick="bird.play(WebAudio.getSoundSource('owl'));" />-->
+   <input type="button" value="CREEK" onclick="creek.play(WebAudio.getSoundSource('sword'));" />-->
+  <!-- <input type="button" value="TEST" onclick="testSound.play(WebAudio.getSoundSource('owl')); " /><br /><br> -->
 	   
    <!--<input type="button" value="OWL" onclick="playSound('owl');" />
    
