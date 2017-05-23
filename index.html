@@ -18,6 +18,8 @@
    <script src="JavaScript/PannerSound.js"></script>
 	<script src="JavaScript/Scene.js"></script>
    <script src="JavaScript/SceneObject.js"></script>
+    <script src="JavaScript/Game.js"></script>
+    <script src="JavaScript/Games/MattsGame.js"></script>
 	<!--<script src="JavaScript/TestSound.js"></script>-->
    <!--
 		Files for trying out different sound effects.
@@ -34,6 +36,8 @@
 		var aceOfBass = null;
 		var testSound = null;
 
+		var initSound = null; 
+
 		function onLoad() {
 
 			var container = document.getElementById("canvas_container");
@@ -43,22 +47,10 @@
 			canvas.setAttribute("tabindex", 1);	// tabindex on canvas makes it focusable.
 			container.appendChild(canvas);
 
-		   DeviceMotion.init();
-		   WebAudio.init();
-			WebAudio.loadSoundSource("Sounds/Owl.wav", "owl");
-			WebAudio.loadSoundSource("Sounds/Bird1.wav", "bird1");
-			WebAudio.loadSoundSource("Sounds/Bird2.wav", "bird2");
-			WebAudio.loadSoundSource("Sounds/Sword.wav", "sword");
-			WebAudio.loadSoundSource("Sounds/Creek water sounds02 video03.mp3", "creek");
-			WebAudio.loadSoundSource("Sounds/Scream.wav", "Scream");
-			WebAudio.loadSoundSource("Sounds/1000htz.wav", "1000htz");
+			var game = new MattsGame(canvas);
 
-			this.scene = new Scene();
-			this.scene.setCanvas(canvas);
-		
-			this.bird = createBirdObject();
-			this.creek = createCreekObject();
-			this.owl = createOwlObject();
+			initSound = new SceneObject();
+
 
 			//this.testSound = new SceneObject(
 			//{
@@ -68,64 +60,11 @@
 			//						mod: false },
 			//	alias: 'Test'
 			//});
-			
-			//this.scene.addObject(this.bird);
-			this.scene.addObject(this.creek);
-			//this.scene.addObject(this.owl);
 		};
         
 		
-		function createBirdObject() {
-			var obj = new SceneObject(
-         {
-            position: new Vector(5, 0, 0),
-            alias: 'Birdy'
-         });
-			
-			var behavior = function (pos, dir) {
-				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)  {
-					this.play(WebAudio.getSoundSource("bird1"));
-				}
-			};
-			obj.setBehavior(behavior);
-
-			return obj;
-		};
-
-		function createCreekObject() {
-			var obj = new SceneObject(
-         {
-            position: new Vector(-5, 0, 0),
-            alias: 'creek'
-         });
-			
-			var behavior = function (pos, dir) {
-				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
-					this.play(WebAudio.getSoundSource("creek"), true);
-				else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 2)
-					this.stop();
-			};
-			obj.setBehavior(behavior);
-
-			return obj;
-		};
-
-		function createOwlObject() {
-			var obj = new SceneObject(
-         {
-            position: new Vector(0, 0, -5),
-            alias: 'owl'
-         });
-			
-			var behavior = function (pos, dir) {
-				if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
-					this.play(WebAudio.getSoundSource("owl"), false);
-				
-			};
-			obj.setBehavior(behavior);
-
-			return obj;
-		}
+		
+	
 		
       // Playing with local storage here...
 		//localStorage.setItem("lastPlayed", alias);
@@ -141,7 +80,7 @@
    <br>
     
    <!--<input type="button" value="BIRDY" onclick="bird.play(WebAudio.getSoundSource('owl'));" />-->
-   <input type="button" value="CREEK" onclick="creek.play(WebAudio.getSoundSource('sword'));" />-->
+   <input type="button" value="CREEK" onclick="initSound.play(WebAudio.getSoundSource('sword'));" />-->
   <!-- <input type="button" value="TEST" onclick="testSound.play(WebAudio.getSoundSource('owl')); " /><br /><br> -->
 	   
    <!--<input type="button" value="OWL" onclick="playSound('owl');" />
