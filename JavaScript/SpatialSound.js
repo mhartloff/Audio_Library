@@ -95,7 +95,8 @@ SpatialSound.prototype.getDirection = function () {
 }
 
 SpatialSound.prototype.play = function () {
-	this.start(this.getSourceNode());
+	if (this.isLoaded())
+		this.start(this.getSourceNode());
 }
 
 SpatialSound.prototype._onEnded = function () {

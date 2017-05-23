@@ -10,10 +10,12 @@ function Sound (source) {
 	this.sourceNode = this.createSourceNode();
 }
 
+// Create a new source node that will be attached to other nodes downstream.
 Sound.prototype.createSourceNode = function () {
 	var self = this;
+	
 	sourceNode = WebAudio.context.createBufferSource();
-	sourceNode.buffer = this.source.buffer;
+	sourceNode.buffer = this.source.buffer;			// Might be null if it has not been loaded.
 	sourceNode.loop = this.repeat;
 	sourceNode.onended = function () {
 		if (self._onEnded)
@@ -36,22 +38,33 @@ Sound.prototype.setRepeat = function (repeat /* bool */) {
 	this.sourceNode.loop = repeat;
 }
 
+Sound.prototype.isLoaded = function () {
+	return this.sourceNode.isLoaded;
+}
+
 Sound.prototype.start = function () {
-	if (!this.sourceNode)
-		return;
-	
 	this.sourceNode.start(WebAudio.context.currentTime + this.delay);
 }
 
 Sound.prototype.play = function () {
-	var sourceNode = this.getSourceNode();
+
+	if (!this.sourceNode) {
+		console.error("Attempting to play a Sound more than once!");
+		return;
+	}
+	
+	if (this.sourceNode.buffer == null)	// may not have been loaded yet.
+		this.sourceNode.buffer = this.source.buffer;
+	if (!this.sourceNode.buffer)
+		return;			// Still not loaded.  Don't try to play it.
+
 	sourceNode.connect(WebAudio.context.destination);
 	this.start(sourceNode);
 }
 
 Sound.prototype.stop = function () {
 	this.sourceNode.stop();
-	this.sourceNode = null;
+	this.sourceNode = null;			// A source node can only be played once.
 }
 
 Sound.prototype._onEnded = function () {

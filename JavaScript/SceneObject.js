@@ -1,7 +1,7 @@
 ﻿
 // An object in the scene which is designed to eventually be able to play more
 // than one sound.
-function SceneObject(soundSource /* SoundSource */, options)  {
+function SceneObject(options)  {
 
 	// Vars that can be set within options.
 	this.position = new Vector(0, 0, 1);
@@ -10,16 +10,13 @@ function SceneObject(soundSource /* SoundSource */, options)  {
 	this.soundType = SceneObject.SoundTypeEnum['panner'];
 	this.soundOptions = null;		// A canvas to output information about the sound playing, if the sound supports it.
 
+	$.extend(this, options);
 	if (options) {
-		if (options.position) this.position = options.position.clone();
+		if (options.position) this.position = options.position.clone();		// Clone these because they would be passed by reference.
 		if (options.direction) this.direction = options.direction.clone();
-		if (options.alias) this.alias = options.alias;
-		if (options.soundType !== undefined) this.soundType = options.soundType;
-		if (options.soundOptions != undefined) this.soundOptions = options.soundOptions;
 	}
 
 	this.scene = null;	// populated when/if it is added to a scene.
-	this.soundSource = soundSource;
 	this.sounds = [];		// All currently playing sounds
 
 	this.isPlaying = false;
@@ -58,27 +55,39 @@ SceneObject.prototype.setDirection = function (dir) {
 		this.scene.needsRedraw = true;
 }
 
+// BehaviorFunction:  
+//		arg1: Vector3     // the player's position
+//    arg2: Vector3		// the player's direction 
+SceneObject.prototype.setBehavior = function (behaviorFunction) {
+	this.updateBehavior = behaviorFunction;
+}
 
-SceneObject.prototype.play = function (repeat) {
+
+SceneObject.prototype.play = function (soundSource, repeat) {
+
+	if (!soundSource) {
+		console.error("Trying to play an invalid sound source!");
+		return;
+	}
 
 	//try {
 
 		var newSound = null;
 		switch (this.soundType) {
 			case 0: {
-				newSound = new Sound(this.soundSource);
+				newSound = new Sound(soundSource);
 				break;
 			}
 			case 1: {
-				newSound = new PannerSound(this.soundSource);
+				newSound = new PannerSound(soundSource);
 				break;
 			}
 			case 2: {
-				newSound = new SpatialSound(this.soundSource, this.scene.earInfo);
+				newSound = new SpatialSound(soundSource, this.scene.earInfo);
 				break;
 			}
 			case 3: {
-				newSound = new TestSound(this.soundSource, this.soundOptions);
+				newSound = new TestSound(soundSource, this.soundOptions);
 				break;
 			}
 			default: {
@@ -106,6 +115,10 @@ SceneObject.prototype.play = function (repeat) {
 	//catch (e) {
 	//	alert(e.message);
 	//}
+}
+
+SceneObject.prototype.numSoundsPlaying = function () {
+	return this.sounds.length;
 }
 
 SceneObject.prototype.stop = function () {

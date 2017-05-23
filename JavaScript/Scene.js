@@ -15,7 +15,7 @@ function Scene() {
 	this.deadZoneRadius = 50;		// The radius from the center where if a touch occurs within, it has no effect.
 	this.rotateMaxRadius = 100;  // pixels from the min circle that the 'rotate only' circle will lie.
 	this.moveMaxRadius = 200;	// The radius from the center where if the touch is any further it has no additional effect. 
-	this.maxVelocity = 1.5;		// The fastest in meters / sec that the user can move forward.
+	this.maxVelocity = 2.0;		// The fastest in meters / sec that the user can move forward.
 	this.maxBackVelocity = 1.0;// The fastest in meters / sec that the user can move backwards.
 	this.maxRotateVelocity = MathExt.degToRad(180.0);	// Max rotation velocity in radians / sec
 
@@ -385,6 +385,22 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	}
 }
 
+Scene.prototype.updateBehaviors = function() {
+
+	var pos = this.getPlayerPosition();
+	var dir = this.getPlayerDirection();
+
+	for (var id in this.objects) {
+		if (this.objects.hasOwnProperty(id)) {
+			var obj = this.objects[id];
+			if (obj.updateBehavior)  {
+				obj.updateBehavior(pos, dir);
+			}
+		}
+	}
+
+}
+
 // The main game loop.
 Scene.prototype.redraw = function () {
 
@@ -397,6 +413,8 @@ Scene.prototype.redraw = function () {
 	this.lastRedrawTime = Date.now();
 
 	this.updateTouchMovement(interval);
+
+	this.updateBehaviors();
 		
 	if (!this.needsRedraw)
 		return;
@@ -470,7 +488,7 @@ Scene.prototype.redraw = function () {
 		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.end, "rgb(240, 150, 100)");
 	}
 	if (this.moveMode == "forward") {
-		canvas.drawCircleC(center.x, center.y, this.deadZoneRadius + this.rotateMaxRadius, "rgb(130, 180, 250)", null /* fill */);	// The middle circle
+		canvas.drawCircleC(center.x, center.y, this.rotateMaxRadius, "rgb(130, 180, 250)", null /* fill */);	// The middle circle
 		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(100, 150, 240)", null /* fill */);	// The outer circle where movement in any direction is valid.
 	}
 	if (this.moveMode == "back") {
