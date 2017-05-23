@@ -63,7 +63,7 @@ SceneObject.prototype.setBehavior = function (behaviorFunction) {
 }
 
 
-SceneObject.prototype.play = function (soundSource, repeat) {
+SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, playerPosition) {
 
 	if (!soundSource) {
 		console.error("Trying to play an invalid sound source!");
@@ -97,8 +97,10 @@ SceneObject.prototype.play = function (soundSource, repeat) {
 		}
 
 		var self = this;
-		newSound.onEnded = function (sound) { self.onEnded(sound); }
-		newSound.setRepeat(repeat !== undefined ? repeat : false);
+		newSound.onEnded = function (sound) { self.onEnded(sound); };
+		//newSound.setRepeat(repeat !== undefined ? repeat : false);
+		newSound.setRepeat(repeat);
+		newSound.setDelay(delay);
 
 		// Update the sound if it has location specific functionality
 		if (newSound.setLocation)

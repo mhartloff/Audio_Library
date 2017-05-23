@@ -7,6 +7,8 @@
 
 <link rel="stylesheet" href="css/main.css"/>
 
+<script src="Scripts/jquery-3.1.1.js"></script>
+
 <script src="JavaScript/Common/Utils.js"></script>
 <script src="JavaScript/Common/DeviceMotion.js"></script>
 
@@ -19,9 +21,11 @@
 <script src="JavaScript/TestSound.js"></script>
 <script src="JavaScript/Games/SimpleConcept/SimpleConcept.js"></script>
 <script src="JavaScript/Games/SimpleConcept/Fireball.js"></script>
+<script src="JavaScript/Games/GameUtils.js"></script>
 
 <script>
     function onLoad() {
+        loadAllSounds();
         var game = new SimpleConcept();
         game.initialize(document.getElementById("scene_canvas"));
         game.run();

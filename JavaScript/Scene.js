@@ -394,7 +394,7 @@ Scene.prototype.updateBehaviors = function() {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
 			if (obj.updateBehavior)  {
-				obj.updateBehavior(pos, dir);
+				obj.updateBehavior(/* pos, dir, */ theWholeDamnScene);
 			}
 		}
 	}

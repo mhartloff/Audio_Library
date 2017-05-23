@@ -55,4 +55,9 @@ PannerSound.prototype.play = function () {
 	this.sourceNode.connect(this.pannerNode);
 	this.pannerNode.connect(WebAudio.outputNode);
 	this.start(sourceNode);
+
+	for(var i in echoObjects){
+		var echoObject = echoObjects[i];
+
+	}
 }
