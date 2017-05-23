@@ -2,22 +2,34 @@
 
 function Game(canvas) {
 
-    DeviceMotion.init();
-    WebAudio.init();
+   DeviceMotion.init();
+   WebAudio.init();
 
-    this.loadAllSounds();
+   this.loadAllSounds();
 
-    this.scene = new Scene();
-    this.scene.setCanvas(canvas);
+   this.scene = new Scene();
+   this.scene.setCanvas(canvas);
 
-    
-    
-    
+	var self = this;
+   this.behaviorIntervalID = setInterval(function () { self.onBehavior(); }, 200);	// Fire an event to update the behavior
+	this.intervalID = setInterval(function () { self.onRedraw(); }, 50);	// Fire an event to redraw 
+   
+}
+
+Game.prototype.destroy = function () {
+	clearInterval(this.intervalID);
+	clearInterval(this.behaviorIntervalID);
+}
+
+Game.prototype.onBehavior = function () {
+	this.scene.onBehavior();
+}
+
+Game.prototype.onRedraw = function () {
+	this.scene.onRedraw();
 }
 
 Game.prototype.loadAllSounds = function () {
-
-    
 
     allSounds = {
         //"1000htz": "Sounds/1000htz.wav",

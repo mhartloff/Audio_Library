@@ -19,6 +19,13 @@ function SceneObject(options)  {
 	this.scene = null;	// populated when/if it is added to a scene.
 	this.sounds = [];		// All currently playing sounds
 
+	// Callback function called on every physics update, which is generally less frequent than redraw.
+	// function is passed in one parameter, the scene.
+	this.onBehavior = null;	
+
+	// Callback function called before every draw update. Passed (scene, interval). Interval is ms since last redraw.
+	this.onPredraw = null;			// Called before every draw
+
 	this.isPlaying = false;
 }
 
@@ -62,13 +69,6 @@ SceneObject.prototype.setDirection = function (dir) {
 		this.scene.needsRedraw = true;
 }
 
-// BehaviorFunction:  
-//		arg1: Vector3     // the player's position
-//    arg2: Vector3		// the player's direction 
-SceneObject.prototype.setBehavior = function (behaviorFunction) {
-	this.updateBehavior = behaviorFunction;
-}
-
 SceneObject.prototype.draw = function (canvas) {
 	var fillColor = this.isPlaying ? "rgb(200, 100, 100)" : "rgb(100, 200, 100)";
 	var outlineColor = "rgb(100,100,100)";
@@ -84,9 +84,7 @@ SceneObject.prototype.draw = function (canvas) {
 		canvas.drawText(this.alias, pos.x - 0.3, pos.z - 0.3, "rgb(60, 60, 120)");
 
 	// Here we could draw each sound individually, such as an echo sound.
-
 }
-
 
 
 SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, playerPosition) {

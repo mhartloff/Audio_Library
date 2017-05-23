@@ -39,8 +39,7 @@ function Scene() {
 	this.moveInitialAngle = 0.0;	// The angle of the player object when the user entered the 'forward zone'.
 
 	var self = this;
-	this.intervalID = setInterval(function () { self.redraw(); }, 50);	// Fire an event to redraw 10/sec
-
+	
 	this.nextID = 0;	
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
 	
@@ -51,9 +50,7 @@ function Scene() {
 }
 
 
-Scene.prototype.destroy = function () {
-	clearInterval(this.intervalID);
-}
+
 
 Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas = new Canvas2D(canvasElement);
@@ -86,7 +83,7 @@ Scene.prototype.getUpVec = function () {
 	return this.orientation.getYAxisH();
 }
 
-Scene.prototype.getDirection = function () {
+Scene.prototype.getPlayerDirection = function () {
 	return this.orientation.getZAxisH();
 }
 
@@ -337,8 +334,6 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			return;	
 		}
 	}
-					
-	console.log(this.moveMode);
 
 	magnitude = Math.min(this.moveMaxRadius, magnitude);
 	
@@ -385,36 +380,47 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	}
 }
 
-Scene.prototype.updateBehaviors = function() {
-
-	var pos = this.getPlayerPosition();
-	var dir = this.getPlayerDirection();
-
+Scene.prototype.onBehavior = function() {
+		
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
-			if (obj.updateBehavior)  {
-				obj.updateBehavior(pos, dir);
+			if (obj.onBehavior)  {
+				obj.onBehavior(this);
+			}
+		}
+	}
+}
+
+// Inform all objects that they are about to be drawn.  Interval is ms since the last redraw.
+Scene.prototype.onRedraw = function () {
+	
+	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
+	this.lastRedrawTime = Date.now();
+
+	// Notify all objects that they are about to be drawn.  This would be a good opportunity for them to update
+	// their position.
+	for (var id in this.objects) {
+		if (this.objects.hasOwnProperty(id)) {
+			var obj = this.objects[id];
+			if (obj.onPredraw)  {
+				obj.onPredraw(this, interval);
 			}
 		}
 	}
 
+	this.redraw(interval);
 }
 
 // The main game loop.
-Scene.prototype.redraw = function () {
+Scene.prototype.redraw = function (interval) {
 
 	var canvas = this.canvas;
 	if (!this.canvas) {
 		return;
 	}
 
-	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
-	this.lastRedrawTime = Date.now();
-
 	this.updateTouchMovement(interval);
-
-	this.updateBehaviors();
 		
 	if (!this.needsRedraw)
 		return;
@@ -439,7 +445,7 @@ Scene.prototype.redraw = function () {
 	
 	// Draw the player
 	var pos = this.position;
-	var dir = this.getDirection();
+	var dir = this.getPlayerDirection();
 	dir.setLength(1.0);		
 	canvas.drawCircle(pos.x, pos.z, 0.2 /* radius */, "rgb(10, 10, 10)", "rgb(50, 50, 200)");
 	canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(255, 0, 0)");
