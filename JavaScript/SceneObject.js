@@ -28,6 +28,13 @@ SceneObject.prototype.setAlias = function (alias /*String */) {
 	this.alias = alias;
 }
 
+SceneObject.prototype.numSoundsPlaying = function () {
+	return this.sounds.length;
+}
+
+SceneObject.prototype.isPlaying = function () {
+	return this.isPlaying;
+}
 
 SceneObject.prototype.getPosition = function () {
 	return this.position;
@@ -62,6 +69,25 @@ SceneObject.prototype.setBehavior = function (behaviorFunction) {
 	this.updateBehavior = behaviorFunction;
 }
 
+SceneObject.prototype.draw = function (canvas) {
+	var fillColor = this.isPlaying ? "rgb(200, 100, 100)" : "rgb(100, 200, 100)";
+	var outlineColor = "rgb(100,100,100)";
+
+	var pos = this.getPosition();
+	canvas.drawCircle(pos.x, pos.z, 0.4, outlineColor, fillColor);
+	
+	// Draw a line indicating the direction the object is facing.
+	var dir = this.getDirection().clone();		
+	dir.mult(0.50);	// Set the length of the line
+	canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(20, 20, 100)");
+	if (this.alias)
+		canvas.drawText(this.alias, pos.x - 0.3, pos.z - 0.3, "rgb(60, 60, 120)");
+
+	// Here we could draw each sound individually, such as an echo sound.
+
+}
+
+
 
 SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, playerPosition) {
 
@@ -71,7 +97,6 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 	}
 
 	//try {
-
 		var newSound = null;
 		switch (this.soundType) {
 			case 0: {
@@ -117,10 +142,6 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 	//catch (e) {
 	//	alert(e.message);
 	//}
-}
-
-SceneObject.prototype.numSoundsPlaying = function () {
-	return this.sounds.length;
 }
 
 SceneObject.prototype.stop = function () {

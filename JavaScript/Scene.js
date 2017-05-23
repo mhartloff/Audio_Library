@@ -448,18 +448,7 @@ Scene.prototype.redraw = function () {
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
-			var pos = obj.getPosition();
-			var fillColor = obj.isPlaying ? "rgb(200, 100, 100)" : "rgb(100, 200, 100)";
-			if (this.selectedObject == obj)
-				fillColor = "rgb(200, 200, 50)";
-			var outlineColor = "rgb(100,100,100)";
-			canvas.drawCircle(pos.x, pos.z, 0.4, outlineColor, fillColor);
-			// Draw a line indicating the direction the object is facing.
-			var dir = obj.getDirection().clone();		
-			dir.mult(0.50);	// Set the length of the line
-			canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(20, 20, 100)");
-			if (obj.alias)
-				canvas.drawText(obj.alias, pos.x - 0.3, pos.z - 0.3, "rgb(60, 60, 120)");
+			obj.draw(canvas);
 		}
 	}
 
