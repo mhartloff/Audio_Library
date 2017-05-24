@@ -1,11 +1,12 @@
-function ProximityBehavior(sceneObject, distance) {
+function ProximityBehavior(sceneObject, distance, triggerFunction) {
 	this.sceneObject = sceneObject;
 	this.distance = distance;
+	this.triggerFunction = triggerFunction;
 }
 
 ProximityBehavior.prototype.onBehavior = function (scene) {
 	if(this.triggered(scene)){
-		this.sceneObject.engage();
+		this.triggerFunction();
 	}
 };
 

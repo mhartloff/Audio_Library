@@ -16,7 +16,7 @@ function Sound (source) {
 Sound.prototype.createSourceNode = function () {
 	var self = this;
 	
-	sourceNode = WebAudio.context.createBufferSource();
+	var sourceNode = WebAudio.context.createBufferSource();
 	sourceNode.buffer = this.source.buffer;			// Might be null if it has not been loaded.
 	sourceNode.loop = this.repeat;
 	sourceNode.onended = function () {
@@ -35,7 +35,7 @@ Sound.prototype.getSourceNode = function () {
 Sound.prototype.setDelay = function (seconds) {
 	//this.delayNode.delay.value = seconds;
 	this.delay = seconds;
-	console.log(this.delay);
+	console.log("delay: " + this.delay);
 }
 
 Sound.prototype.setRepeat = function (repeat /* bool */) {

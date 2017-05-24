@@ -22,6 +22,7 @@ function SceneObject(options)  {
 	// Callback function called on every physics update, which is generally less frequent than redraw.
 	// function is passed in one parameter, the scene.
 	//this.onBehavior = null;
+	this.onBehaviorFun = function (scene) {};
 
 	// Callback function called before every draw update. Passed (scene, interval). Interval is ms since last redraw.
 	this.onPredraw = null;			// Called before every draw
@@ -30,7 +31,7 @@ function SceneObject(options)  {
 }
 
 SceneObject.prototype.onBehavior = function (scene) {
-
+	this.onBehaviorFun(scene)
 };
 
 SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3, echo: 4 };	
@@ -131,7 +132,8 @@ SceneObject.prototype.play = function (soundSource, repeat, delay) {
 		newSound.onEnded = function (sound) { self.onEnded(sound); };
 		//newSound.setRepeat(repeat !== undefined ? repeat : false);
 		newSound.setRepeat && newSound.setRepeat(repeat);
-		newSound.setDelay && newSound.setDelay(delay);
+		//newSound.setDelay && delay !== undefined && newSound.setDelay(delay);
+		delay !== undefined && newSound.setDelay(delay);
 		newSound.setLocation && newSound.setLocation(this.position, this.direction);
 
 		newSound.play();
