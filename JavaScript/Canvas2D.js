@@ -363,7 +363,11 @@ Canvas2D.prototype.drawLineC = function (x1, y1, x2, y2, color) {
 	this.context.moveTo(x1, y1);
 	this.context.lineTo(x2, y2);
 	this.context.stroke();
-}
+};
+
+Canvas2D.prototype.drawLineV = function (v1, v2, color) {
+	this.drawLine(v1.x, v1.y, v2.x, v2.y, color);
+};
 
 // Coordinates are in local projection coordinates.
 Canvas2D.prototype.drawLine = function (x1, y1, x2, y2, color) {

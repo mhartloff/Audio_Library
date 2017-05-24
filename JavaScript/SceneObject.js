@@ -29,7 +29,7 @@ function SceneObject(options)  {
 	this.isPlaying = false;
 }
 
-SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3 };	
+SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3, echo: 4 };	
 
 SceneObject.prototype.setAlias = function (alias /*String */) {
 	this.alias = alias;
@@ -113,6 +113,10 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 				newSound = new TestSound(soundSource, this.soundOptions);
 				break;
 			}
+			case 4: {
+				newSound = new EchoSound(soundSource, this.scene.getEchoObjects(), this.scene.getPlayerPosition())
+				break;
+			}
 			default: {
 				console.log("Unknown sound type");
 				return;
@@ -122,12 +126,9 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 		var self = this;
 		newSound.onEnded = function (sound) { self.onEnded(sound); };
 		//newSound.setRepeat(repeat !== undefined ? repeat : false);
-		newSound.setRepeat(repeat);
-		newSound.setDelay(delay);
-
-		// Update the sound if it has location specific functionality
-		if (newSound.setLocation)
-			newSound.setLocation(this.position, this.direction);
+		newSound.setRepeat && newSound.setRepeat(repeat);
+		newSound.setDelay && newSound.setDelay(delay);
+		newSound.setLocation && newSound.setLocation(this.position, this.direction);
 
 		newSound.play();
 		this.isPlaying = true;

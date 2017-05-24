@@ -5,6 +5,9 @@ function MattsGame(canvas) {
 
     this.creek = this.createCreekObject();
     this.scene.addObject(this.creek);
+
+	this.wall = new EchoObject(new Vector2(-2, 2), new Vector2(2, 2));
+	this.scene.addEchoObject(this.wall);
 };
 
 MattsGame.prototype = Object.create(Game.prototype);
@@ -25,7 +28,7 @@ MattsGame.prototype.loadAllSounds = function () {
 
 MattsGame.prototype.createCreekObject = function () {
 
-   var obj = new SceneObject({  position: new Vector(-5, 0, 0),   alias: 'creek' });
+   var obj = new SceneObject({  position: new Vector(-5, 0, 0),  soundType: SceneObject.SoundTypeEnum.echo,  alias: 'creek' });
 
    obj.onBehavior = function (scene) {
 		var pos = scene.getPlayerPosition();

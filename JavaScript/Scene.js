@@ -23,7 +23,6 @@ function Scene() {
 	// Graphics and UI
 	this.canvas = null;			// Canvas2D object which the scene is displayed (optional)
 	this.needsRedraw = false;
-	this.lastRedrawTime = null;
 	this.selectedObject = null;
 
 	{
@@ -42,6 +41,7 @@ function Scene() {
 	
 	this.nextID = 0;	
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
+	this.echoObjects = [];
 	
 	// Subscribe to orientation messages sent from devices like a phone.
 	this.usePhoneOrientation = true;	
@@ -189,6 +189,15 @@ Scene.prototype.addObject = function (sceneObject) {
 Scene.prototype.removeObject = function (sceneObject) {
 	delete this.objects[sceneObject.sceneID];
 	this.needsRedraw = true;
+}
+
+// Add an echo object to the scene
+Scene.prototype.addEchoObject = function (echoObject) {
+	this.echoObjects.push(echoObject);
+}
+
+Scene.prototype.getEchoObjects = function() {
+	return this.echoObjects;
 }
 
 // Callback from the DeviceMotion object, which reports the orientation of the phone.
@@ -393,11 +402,8 @@ Scene.prototype.onBehavior = function() {
 }
 
 // Inform all objects that they are about to be drawn.  Interval is ms since the last redraw.
-Scene.prototype.onRedraw = function () {
-	
-	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
-	this.lastRedrawTime = Date.now();
-
+Scene.prototype.onRedraw = function (interval) {
+		
 	// Notify all objects that they are about to be drawn.  This would be a good opportunity for them to update
 	// their position.
 	for (var id in this.objects) {
@@ -456,6 +462,11 @@ Scene.prototype.redraw = function (interval) {
 			var obj = this.objects[id];
 			obj.draw(canvas);
 		}
+	}
+
+	// Draw each echo object
+	for (var i = 0; i < this.echoObjects.length; i++) {
+		this.echoObjects[i].draw(canvas);
 	}
 
 	// Draw the touch controls

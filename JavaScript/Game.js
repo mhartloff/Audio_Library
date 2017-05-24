@@ -10,6 +10,8 @@ function Game(canvas) {
    this.scene = new Scene();
    this.scene.setCanvas(canvas);
 
+	this.lastRedrawTime = null;
+
 	var self = this;
    this.behaviorIntervalID = setInterval(function () { self.onBehavior(); }, 200);	// Fire an event to update the behavior
 	this.intervalID = setInterval(function () { self.onRedraw(); }, 50);	// Fire an event to redraw 
@@ -26,7 +28,12 @@ Game.prototype.onBehavior = function () {
 }
 
 Game.prototype.onRedraw = function () {
-	this.scene.onRedraw();
+
+	var interval = this.lastRedrawTime ? Date.now() - this.lastRedrawTime : 0.0;
+	interval = Math.min(interval, 500);		// Limit the interval to 1/2 sec.
+	this.lastRedrawTime = Date.now();
+
+	this.scene.onRedraw(interval);
 }
 
 Game.prototype.loadAllSounds = function () {

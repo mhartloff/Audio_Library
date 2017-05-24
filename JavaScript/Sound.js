@@ -7,7 +7,9 @@ function Sound (source) {
 	
 	this.onEnded = null;		// Callback function when the sound ends
 	
-	this.sourceNode = this.createSourceNode();
+	if (source)  {
+		this.sourceNode = this.createSourceNode();
+	}
 }
 
 // Create a new source node that will be attached to other nodes downstream.
