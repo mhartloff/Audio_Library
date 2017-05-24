@@ -90,8 +90,8 @@ EchoSound.prototype.play = function () {
 			var echoSound = new PannerSound(this.source);
 			echoSound.setPosition(new Vector(echoPoint.x, 0, echoPoint.y));
 			//echoSound.setLocation(echoPoint, echoPoint.angleBetween(listenerLocation));
-			//echoSound.setDelay(distance1/343.0);
-			echoSound.setDelay(distance1/3.0);
+			echoSound.setDelay(distance1/343.0);
+			//echoSound.setDelay(distance1/3.0);
 			echoSound.setRepeat(this.loop);
 			echoSound.setGain(0.5);
 			this.echoSounds.push(echoSound);
