@@ -7,7 +7,7 @@ function SceneObject(options)  {
 	this.position = new Vector(0, 0, 1);
 	this.direction = new Vector(0, 0, 1);
 	this.alias = null;	// A text string for casual identification
-	this.soundType = SceneObject.SoundTypeEnum['panner'];
+	this.soundType = SceneObject.SoundTypeEnum['echo'];
 	this.soundOptions = null;		// A canvas to output information about the sound playing, if the sound supports it.
 
 	$.extend(this, options);
@@ -87,7 +87,7 @@ SceneObject.prototype.draw = function (canvas) {
 }
 
 
-SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, playerPosition) {
+SceneObject.prototype.play = function (soundSource, repeat, delay) {
 
 	if (!soundSource) {
 		console.error("Trying to play an invalid sound source!");
@@ -114,7 +114,7 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 				break;
 			}
 			case 4: {
-				newSound = new EchoSound(soundSource, this.scene.getEchoObjects(), this.scene.getPlayerPosition())
+				newSound = new EchoSound(soundSource, this.scene);
 				break;
 			}
 			default: {

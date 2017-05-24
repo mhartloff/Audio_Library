@@ -3,11 +3,13 @@
 function MattsGame(canvas) {
     Game.call(this, canvas);
 
-    this.creek = this.createCreekObject();
+    this.creek = this.createCreekObject ();
     this.scene.addObject(this.creek);
 
-	this.wall = new EchoObject(new Vector2(-2, 2), new Vector2(2, 2));
-	this.scene.addEchoObject(this.wall);
+    this.scene.addEchoObject(new EchoObject(new Vector2(-2, 2), new Vector2(2, 2)));
+    this.scene.addEchoObject(new EchoObject(new Vector2(-20, 2), new Vector2(20, 2)));
+    this.scene.addEchoObject(new EchoObject(new Vector2(-1, 5), new Vector2(5, 10)));
+    this.scene.addEchoObject(new EchoObject(new Vector2(-8, 2), new Vector2(-8, 3)));
 };
 
 MattsGame.prototype = Object.create(Game.prototype);
@@ -32,9 +34,9 @@ MattsGame.prototype.createCreekObject = function () {
 
    obj.onBehavior = function (scene) {
 		var pos = scene.getPlayerPosition();
-      if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
+      if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 40)
 			this.play(WebAudio.getSoundSource("creek"), true);
-      else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 2)
+      else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 40)
          this.stop();
    };
    

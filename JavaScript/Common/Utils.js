@@ -213,9 +213,72 @@ Line2.prototype.distance = function (point) {
 	return Math.abs(distance);
 };
 
+Line2.prototype.getCenter = function () {
+	return new Vector2((this.p1.x+this.p2.x)/2.0, (this.p1.y+this.p2.y)/2.0);
+};
+
 // Get the intersection between 2 rays.
 Line2.prototype.intersection = function (other /* Line2 */) {
 
+	var direction = this.direction().normalize();
+	var normal = other.normal();
+
+	var dot = Math.abs(direction.dot(normal));	// Approach speed
+	if (dot < 0.001)
+		return null;		// Lines are parallel.
+	var distance = other.distance(this.p1);
+	var param = distance / dot;		// This could be checked against the length to ensure it's still on a line.
+	var intersection = this.p1.addc(direction.mult(param));
+
+	if (other.distance(intersection) > distance)
+		return null;	// Rays are moving away from each other.
+	return intersection;
+};
+
+// Get the intersection between 2 line segments.
+Line2.prototype.segmentIntersection = function (other /* Line2 */) {
+
+	// this all seems terrible..
+
+	var tx1;
+	var tx2;
+	var ty1;
+	var ty2;
+
+	var ox1;
+	var ox2;
+	var oy1;
+	var oy2;
+
+	// order segments points by increasing x
+	if(this.p1.x < this.p2.x){
+		tx1 = this.p1.x;
+		tx2 = this.p2.x;
+		ty1 = this.p1.y;
+		ty2 = this.p2.y;
+	}else{
+		tx1 = this.p2.x;
+		tx2 = this.p1.x;
+		ty1 = this.p2.y;
+		ty2 = this.p1.y;
+	}
+
+	if(other.p1.x < other.p2.x){
+		ox1 = other.p1.x;
+		ox2 = other.p2.x;
+		oy1 = other.p1.y;
+		oy2 = other.p2.y;
+	}else{
+		ox1 = other.p2.x;
+		ox2 = other.p1.x;
+		oy1 = other.p2.y;
+		oy2 = other.p1.y;
+	}
+
+
+
+
+	if(other.p1.x)
 	var direction = this.direction().normalize();
 	var normal = other.normal();
 
