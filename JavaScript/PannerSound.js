@@ -5,6 +5,9 @@ function PannerSound(source) {
 
 	this.position = new Vector(0, 1, 0);	// Location in the scene.
 	this.direction = new Vector(0, 0, 1);	// Always has a vector length of 1.
+	this.directionMatrix = new Matrix();
+	this.offset = new Vector (0, 0, 0);			// Offset to apply to the position when the sound is being played.  In object space.
+	this.soundOrigin = new Vector(0, 0, 0);	
 
 	var panner = WebAudio.context.createPanner();
 	panner.panningModel = 'HRTF';	// 'head-related transfer function'
@@ -23,6 +26,17 @@ function PannerSound(source) {
 PannerSound.prototype = Object.create(Sound.prototype);
 PannerSound.prototype.constructor = PannerSound;
 
+// The apparent location of the sound when the offset is considered.
+PannerSound.prototype.updateSoundOrigin = function () {
+	this.soundOrigin.set(this.position);
+	var offset = this.offset.clone();
+	this.soundOrigin.add(this.directionMatrix.applyToVector(offset));
+
+	this.pannerNode.setPosition(this.soundOrigin.x, this.soundOrigin.y, this.soundOrigin.z);
+	this.pannerNode.setOrientation(this.direction.x, this.direction.y, this.direction.z);  // forward direction x, y, z, up vector x, y, z
+
+}
+
 // Note: Safari does not support direct retrieval of the position from the node (ie this.pannerNode.positionX.value)
 PannerSound.prototype.getPosition = function () {
 	return this.position;
@@ -30,7 +44,7 @@ PannerSound.prototype.getPosition = function () {
 
 PannerSound.prototype.setPosition = function (vec) {
 	this.position.set(vec);
-	this.pannerNode.setPosition(this.position.x, this.position.y, this.position.z);
+	this.updateSoundOrigin();
 }
 
 // Note: Safari does not support direct retrieval of the orientation from the node (ie this.pannerNode.orientationX.value)
@@ -41,12 +55,19 @@ PannerSound.prototype.getDirection = function () {
 PannerSound.prototype.setDirection = function (vec) {
 	this.direction.set(vec);
 	this.direction.normalize();
-	this.pannerNode.setOrientation(this.direction.x, this.direction.y, this.direction.z);  // forward direction x, y, z, up vector x, y, z
+	this.directionMatrix.setFromOrientation(this.direction, Vector.Y);
+	this.updateSoundOrigin();
+	
 }
 
 PannerSound.prototype.setLocation = function (pos, dir) {
 	this.setPosition(pos);
 	this.setDirection(dir);
+}
+
+PannerSound.prototype.setOffset = function (offset /* Vector */) {
+	this.offset.set(offset);
+	this.updateSoundOrigin();
 }
 
 PannerSound.prototype.play = function () {
@@ -55,9 +76,4 @@ PannerSound.prototype.play = function () {
 	this.sourceNode.connect(this.pannerNode);
 	this.pannerNode.connect(WebAudio.outputNode);
 	this.start(sourceNode);
-
-	//for(var i in echoObjects){
-	//	var echoObject = echoObjects[i];
-
-	//}
 }

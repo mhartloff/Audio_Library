@@ -86,8 +86,10 @@ SceneObject.prototype.draw = function (canvas) {
 	// Here we could draw each sound individually, such as an echo sound.
 }
 
+// Options:
+//		offset (Vector):  Position offset from the source position.  For instance, coming from an object's head or feet instead of its center.
+SceneObject.prototype.play = function (soundSource, repeat, delay, options) {
 
-SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, playerPosition) {
 
 	if (!soundSource) {
 		console.error("Trying to play an invalid sound source!");
@@ -129,6 +131,9 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, echoObjects, 
 		newSound.setRepeat && newSound.setRepeat(repeat);
 		newSound.setDelay && newSound.setDelay(delay);
 		newSound.setLocation && newSound.setLocation(this.position, this.direction);
+		if (options) {
+			newSound.setOffset && options.offset && newSound.setOffset(options.offset);
+		}
 
 		newSound.play();
 		this.isPlaying = true;

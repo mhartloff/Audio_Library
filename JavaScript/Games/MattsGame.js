@@ -22,7 +22,9 @@ MattsGame.prototype.loadAllSounds = function () {
     WebAudio.loadSoundSource("Sounds/Sword.wav", "sword");
     WebAudio.loadSoundSource("Sounds/Creek water sounds02 video03.mp3", "creek");
     WebAudio.loadSoundSource("Sounds/Scream.wav", "Scream");
-    WebAudio.loadSoundSource("Sounds/1000htz.wav", "1000htz");
+    WebAudio.loadSoundSource("Sounds/Footsteps - Single5.mp3", "step1"); 
+	 WebAudio.loadSoundSource("Sounds/Footsteps - Single6.mp3", "step3");
+
 }
 
 
@@ -31,11 +33,12 @@ MattsGame.prototype.createCreekObject = function () {
    var obj = new SceneObject({  position: new Vector(-5, 0, 0),  soundType: SceneObject.SoundTypeEnum.echo,  alias: 'creek' });
 
    obj.onBehavior = function (scene) {
+
 		var pos = scene.getPlayerPosition();
-      if (this.numSoundsPlaying() == 0 && pos.distance(this.getPosition()) < 2)
-			this.play(WebAudio.getSoundSource("creek"), true);
-      else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 2)
-         this.stop();
+      if (this.numSoundsPlaying() == 0)
+			this.play(WebAudio.getSoundSource("creek"), true /* repeat */);
+      //else if (this.numSoundsPlaying() > 0 && pos.distance(this.getPosition()) >= 2)
+      //   this.stop();
    };
    
    return obj;
