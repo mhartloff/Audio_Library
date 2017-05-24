@@ -21,13 +21,17 @@ function SceneObject(options)  {
 
 	// Callback function called on every physics update, which is generally less frequent than redraw.
 	// function is passed in one parameter, the scene.
-	this.onBehavior = null;	
+	//this.onBehavior = null;
 
 	// Callback function called before every draw update. Passed (scene, interval). Interval is ms since last redraw.
 	this.onPredraw = null;			// Called before every draw
 
 	this.isPlaying = false;
 }
+
+SceneObject.prototype.onBehavior = function (scene) {
+
+};
 
 SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3, echo: 4 };	
 

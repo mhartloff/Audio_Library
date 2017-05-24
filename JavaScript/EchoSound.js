@@ -12,16 +12,19 @@ function EchoSound(source, scene) {
 
 	//this.origSound = new PannerSound(source);
 
-	//var self = this;
-	//this.origSound.onEnded = function (sound) {
-	//	self.onEnded && self.onEnded(self);
-	//};
+	var self = this;
+	this.origSound.onEnded = function (sound) {
+		self.onEnded && self.onEnded(self);
+	};
 
 	//this.echoObjects = echoObjects;
 	//this.listenerPos = listenerPosition;
 	this.echoSounds = [];			// {PannerSound: delay}
 }
 
+EchoSound.prototype.onEnded = new function () {
+
+}
 
 // Note: Safari does not support direct retrieval of the position from the node (ie this.pannerNode.positionX.value)
 EchoSound.prototype.getPosition = function () {
@@ -90,10 +93,14 @@ EchoSound.prototype.play = function () {
 			var echoSound = new PannerSound(this.source);
 			echoSound.setPosition(new Vector(echoPoint.x, 0, echoPoint.y));
 			//echoSound.setLocation(echoPoint, echoPoint.angleBetween(listenerLocation));
-			echoSound.setDelay(distance1/343.0);
-			//echoSound.setDelay(distance1/3.0);
+			echoSound.setDelay(distance1 / 343.0);
 			echoSound.setRepeat(this.loop);
-			echoSound.setGain(0.5);
+
+			// inverse distance model
+			var gain = echoSound.pannerNode.refDistance / (echoSound.pannerNode.refDistance +
+				echoSound.pannerNode.rolloffFactor * (distance1 - echoSound.pannerNode.refDistance));
+			echoSound.setGain(gain * 0.75);
+
 			this.echoSounds.push(echoSound);
 		}
 	}
@@ -109,7 +116,8 @@ EchoSound.prototype.stop = function () {
 
 	for (var i = 0; i < this.echoSounds.length; i++) {
 		var echoSound = this.echoSounds[i];
-		setTimeout(echoSound.stop(), echoSound.delay);
+		echoSound.stop();
+		//setTimeout(echoSound.stop(), echoSound.delay);
 		//this.echoSounds[i].stop();		// delay stopping?
 	}
 };

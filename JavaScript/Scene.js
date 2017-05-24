@@ -390,13 +390,14 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 }
 
 Scene.prototype.onBehavior = function() {
-		
+
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
-			if (obj.onBehavior)  {
-				obj.onBehavior(this);
-			}
+			obj.onBehavior(this);
+			//if (obj.onBehavior)  {
+			//	obj.onBehavior(this);
+			//}
 		}
 	}
 }
