@@ -7,8 +7,9 @@ function SceneObject(options)  {
 	this.position = new Vector(0, 0, 1);
 	this.direction = new Vector(0, 0, 1);
 	this.alias = null;	// A text string for casual identification
-	this.soundType = SceneObject.SoundTypeEnum['panner'];
+	this.soundType = SceneObject.SoundTypeEnum['echo'];
 	this.soundOptions = null;		// A canvas to output information about the sound playing, if the sound supports it.
+	this.scene = null;	// populated when/if it is added to a scene.  Can also be added under 'options'
 
 	$.extend(this, options);
 	if (options) {
@@ -16,18 +17,22 @@ function SceneObject(options)  {
 		if (options.direction) this.direction = options.direction.clone();
 	}
 
-	this.scene = null;	// populated when/if it is added to a scene.
+	
 	this.sounds = [];		// All currently playing sounds
 
 	// Callback function called on every physics update, which is generally less frequent than redraw.
 	// function is passed in one parameter, the scene.
-	this.onBehavior = null;	
+	//this.onBehavior = null;
 
 	// Callback function called before every draw update. Passed (scene, interval). Interval is ms since last redraw.
 	this.onPredraw = null;			// Called before every draw
 
 	this.isPlaying = false;
 }
+
+SceneObject.prototype.onBehavior = function (scene) {
+
+};
 
 SceneObject.SoundTypeEnum = { normal: 0, panner: 1, spatial: 2, test: 3, echo: 4 };	
 
@@ -90,7 +95,6 @@ SceneObject.prototype.draw = function (canvas) {
 //		offset (Vector):  Position offset from the source position.  For instance, coming from an object's head or feet instead of its center.
 SceneObject.prototype.play = function (soundSource, repeat, delay, options) {
 
-
 	if (!soundSource) {
 		console.error("Trying to play an invalid sound source!");
 		return;
@@ -116,7 +120,7 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, options) {
 				break;
 			}
 			case 4: {
-				newSound = new EchoSound(soundSource, this.scene.getEchoObjects(), this.scene.getPlayerPosition())
+				newSound = new EchoSound(soundSource, this.scene);
 				break;
 			}
 			default: {

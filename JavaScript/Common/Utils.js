@@ -213,6 +213,10 @@ Line2.prototype.distance = function (point) {
 	return Math.abs(distance);
 };
 
+Line2.prototype.getCenter = function () {
+	return new Vector2((this.p1.x+this.p2.x)/2.0, (this.p1.y+this.p2.y)/2.0);
+};
+
 // Get the intersection between 2 rays.
 Line2.prototype.intersection = function (other /* Line2 */) {
 
@@ -230,6 +234,7 @@ Line2.prototype.intersection = function (other /* Line2 */) {
 		return null;	// Rays are moving away from each other.
 	return intersection;
 };
+
 
 ////////////////////////////////////////////////////////////////
 // Line

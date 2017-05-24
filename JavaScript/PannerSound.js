@@ -21,7 +21,10 @@ function PannerSound(source) {
 	panner.setPosition(this.position.x, this.position.y, this.position.z);
 	panner.setOrientation(this.direction.x, this.direction.y, this.direction.z);
 	this.pannerNode = panner;
-}
+
+	this.dampenNode = WebAudio.context.createGain();
+	this.dampenNode.gain.value = 1;
+};
 
 PannerSound.prototype = Object.create(Sound.prototype);
 PannerSound.prototype.constructor = PannerSound;
@@ -34,46 +37,53 @@ PannerSound.prototype.updateSoundOrigin = function () {
 
 	this.pannerNode.setPosition(this.soundOrigin.x, this.soundOrigin.y, this.soundOrigin.z);
 	this.pannerNode.setOrientation(this.direction.x, this.direction.y, this.direction.z);  // forward direction x, y, z, up vector x, y, z
-
-}
+};
 
 // Note: Safari does not support direct retrieval of the position from the node (ie this.pannerNode.positionX.value)
 PannerSound.prototype.getPosition = function () {
 	return this.position;
-}
+};
 
 PannerSound.prototype.setPosition = function (vec) {
 	this.position.set(vec);
+
 	this.updateSoundOrigin();
-}
+};
 
 // Note: Safari does not support direct retrieval of the orientation from the node (ie this.pannerNode.orientationX.value)
 PannerSound.prototype.getDirection = function () {
 	return this.direction;
-}
+};
 
 PannerSound.prototype.setDirection = function (vec) {
 	this.direction.set(vec);
 	this.direction.normalize();
 	this.directionMatrix.setFromOrientation(this.direction, Vector.Y);
-	this.updateSoundOrigin();
-	
-}
+	this.updateSoundOrigin();	
+};
 
 PannerSound.prototype.setLocation = function (pos, dir) {
 	this.setPosition(pos);
 	this.setDirection(dir);
-}
+};
+
+PannerSound.prototype.setGain = function (gain) {
+	this.dampenNode.gain.value = gain;
+};
 
 PannerSound.prototype.setOffset = function (offset /* Vector */) {
 	this.offset.set(offset);
 	this.updateSoundOrigin();
-}
+};
 
 PannerSound.prototype.play = function () {
 
 	var sourceNode = this.getSourceNode();
+	var delayNode = WebAudio.context.createDelay();
+	delayNode.delayTime.value = this.delay;
 	this.sourceNode.connect(this.pannerNode);
-	this.pannerNode.connect(WebAudio.outputNode);
+	this.pannerNode.connect(delayNode);
+	delayNode.connect(this.dampenNode);
+	this.dampenNode.connect(WebAudio.outputNode);
 	this.start(sourceNode);
-}
+};

@@ -1,4 +1,4 @@
-﻿// Copywright Hartloff Gaming and Mike 2017
+﻿// Copyright Hartloff Gaming and Mike 2017
 
 // Echo objects are objects that reflect sound.  Though they emit no sound themselves, they may reflect sound back to the listener.
 // A wall is a good example.
@@ -6,10 +6,23 @@ function EchoObject (start /* Vector2 */, end /* Vector2 */) {
 	
 	this.start = start;
 	this.end = end;
+	this.lineSegment = new Line2(start, end);
 
 	var dir = this.start.subc(this.end);
 	dir.normalize();
 	this.normal = new Vector2(dir.y, dir.x);
+}
+
+EchoObject.prototype.getStart = function () {
+	return this.start;
+};
+
+EchoObject.prototype.getEnd = function () {
+	return this.end;
+};
+
+EchoObject.prototype.getLineSegment = function () {
+	return this.lineSegment;
 };
 
 EchoObject.prototype.draw = function (canvas) {
@@ -23,8 +36,8 @@ EchoObject.prototype.draw = function (canvas) {
 
 
 // Passed a PannerSound object, return an array of PannerSounds that are created.
-EchoObject.prototype.createEchoes = function (source /* PannerSound */, listenerPos) {
-
-	// TODO: Find the echoes.
-
-};
+//EchoObject.prototype.createEchoes = function (source /* PannerSound */, listenerPos) {
+//
+//	// TODO: Find the echoes.
+//
+//};

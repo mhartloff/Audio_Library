@@ -8,7 +8,7 @@ function Scene() {
 	this.orientation = new Matrix();	// The orientation of the player
 	//this.earInfo = new EarInfo();		// Used by the SpatialSound objects (if not using SpatialSound this is not relevant)
 	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects.  Contains the player's orientation for proper sound.
-	this.playerObject = new SceneObject();		// Used for sound emitted by the user.
+	this.playerObject = new SceneObject({ scene: this });		// Used for sound emitted by the user.
 	this.setPlayerPosition(0, 0, 0);
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
 
@@ -382,7 +382,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -3, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
 			}
 		}
 	}
@@ -397,20 +397,21 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -3, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
 			}
 		}
 	}
 }
 
 Scene.prototype.onBehavior = function() {
-		
+
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
-			if (obj.onBehavior)  {
-				obj.onBehavior(this);
-			}
+			obj.onBehavior(this);
+			//if (obj.onBehavior)  {
+			//	obj.onBehavior(this);
+			//}
 		}
 	}
 }

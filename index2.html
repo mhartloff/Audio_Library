@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<HEAD>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Audio Test</title>
+</HEAD>
+<BODY onload="onLoad();">
+
+	<link rel="stylesheet" href="css/main.css" />
+
+	<script src="Scripts/jquery-3.1.1.js"></script>
+
+   <script src="JavaScript/Common/Utils.js"></script>
+   <script src="JavaScript/Common/DeviceMotion.js"></script>
+
+	<script src="JavaScript/Canvas2D.js"></script>
+   <script src="JavaScript/WebAudio.js"></script>
+   <script src="JavaScript/Sound.js"></script>
+   <script src="JavaScript/PannerSound.js"></script>
+	<script src="JavaScript/Scene.js"></script>
+   <script src="JavaScript/SceneObject.js"></script>
+   <script src="JavaScript/Game.js"></script>
+   <script src="JavaScript/Games/MattsGame.js"></script>
+   <script src="JavaScript/Games/JessesGame.js"></script>
+	<script src="JavaScript/EchoObject.js"></script>
+	<script src="JavaScript/EchoSound.js"></script>
+
+	<script src="JavaScript/Games/Actors/InteractiveSceneObject.js"></script>
+	<script src="JavaScript/Games/Actors/Talker.js"></script>
+	<script src="JavaScript/Games/Actors/behaviors/EngagedBehavior.js"></script>
+	<script src="JavaScript/Games/Actors/behaviors/ProximityBehavior.js"></script>
+	<!--<script src="JavaScript/TestSound.js"></script>-->
+   <!--
+		Files for trying out different sound effects.
+		
+		<script src="JavaScript/EarInfo.js"></script>
+		<script src="JavaScript/SpatialSound.js"></script>
+	-->
+	
+	<script>
+		var waveCanvas = null;
+		
+		var scene = null;
+		var bird = null;
+		var aceOfBass = null;
+		var testSound = null;
+
+		var initSound = null; 
+
+		function onLoad() {
+
+			var container = document.getElementById("canvas_container");
+			var canvas = document.createElement("canvas");
+			canvas.setAttribute("width", Math.min(screen.width - 30, 800));
+			canvas.setAttribute("height", Math.min(screen.height - 140, 1000));
+			canvas.setAttribute("tabindex", 1);	// tabindex on canvas makes it focusable.
+			container.appendChild(canvas);
+
+			var game = new JessesGame(canvas);
+
+			initSound = new SceneObject();
+
+
+			//this.testSound = new SceneObject(
+			//{
+			//	position: new Vector(0, 0, -3),
+			//	soundType: SceneObject.SoundTypeEnum.test,
+			//	soundOptions: { outputCanvas: document.getElementById("analysis_canvas_1"),
+			//						mod: false },
+			//	alias: 'Test'
+			//});
+		};
+        
+		
+		
+	
+		
+      // Playing with local storage here...
+		//localStorage.setItem("lastPlayed", alias);
+      //var lastPlayed = localStorage.getItem("lastPlayed");
+      //document.getElementById("lastPlayed").innerText = lastPlayed ? lastPlayed : "none";
+
+	</script>
+   
+	<div id="canvas_container"></div>
+	 
+	<h3>Web Audio API Demo</h3>
+
+   <br>
+    
+   <!--<input type="button" value="BIRDY" onclick="bird.play(WebAudio.getSoundSource('owl'));" />-->
+   <input type="button" value="CREEK" onclick="initSound.play(WebAudio.getSoundSource('sword'));" />-->
+  <!-- <input type="button" value="TEST" onclick="testSound.play(WebAudio.getSoundSource('owl')); " /><br /><br> -->
+	   
+   <!--<input type="button" value="OWL" onclick="playSound('owl');" />
+   
+	<input type="button" value="BIRD 2" onclick="bird.play();" />
+	<input type="button" value="SWORD" onclick="playSound('sword');" />
+	<input type="button" value="Scream" onclick="playSound('Scream');" /><br /> 
+   Repeat: <input type="checkbox" id="repeatSound" /><br>  -->
+   <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
+   
+   Position Info (+Y comes out of the screen) <br>
+	
+	
+	<!-- Container for outputting the phone orientation -->
+	<div id="debug"></div>
+
+	<h5>Touch</h5>
+	<div id="touchOutput"></div>
+
+	<table>
+		<tr><td>Volume:</td>
+			<td><input type="range" min="0" max="1" step="0.1" value="1" oninput="getElementById('volOutput').innerText = value; WebAudio.setGain(value);" /></td>
+			<td><span id="volOutput">1</span></td>
+		</tr>
+	</table>
+
+
+	<!-- Container for outputting the phone orientation -->
+	<h5>Motion</h5>
+	<div id="deviceMotionOutput"></div>
+
+	<!-- Container for outputting the waveform of a sound -->
+	<h4>Sound Info </h4><div id="sound_info"></div>
+	<canvas id="analysis_canvas_1" width="512" height="500" tabindex="1"></canvas><br>
+		
+   Test: <span id="testOutput"></span><br>
+   Last Played: <span id="lastPlayed"></span><br><br>
+</BODY>
+
