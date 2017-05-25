@@ -31,6 +31,8 @@ JessesGame.prototype.loadAllSounds = function () {
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Die.mp3", "die");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/InCharge.mp3", "inCharge");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Explosion.mp3", "explosion");
+	WebAudio.loadSoundSource("Sounds/TextToSpeech/Bark.mp3", "bark");
+	WebAudio.loadSoundSource("Sounds/TextToSpeech/Bark2.mp3", "bark2");
 };
 
 
@@ -46,69 +48,40 @@ JessesGame.prototype.createScene = function () {
 
 	var nextGuide = undefined;
 
-	for(var j in guideLocations){
+	for (var j in guideLocations) {
 		var guideLocation = guideLocations[j];
 		var guide = new Guide(
 			{
 				position: new Vector(guideLocation[0], 0, guideLocation[1]),
 				soundType: SceneObject.SoundTypeEnum.echo
 			}, nextGuide);
-		this.scene.addObject(guide)
+		this.scene.addObject(guide);
 		nextGuide = guide;
 	}
-
-
-	//var guide6 = new Guide(
-	//	{
-	//		position: new Vector(-45, 0, 30),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	});
-	//var guide5 = new Guide(
-	//	{
-	//		position: new Vector(-30, 0, 36),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	}, guide6);
-	//var guide4 = new Guide(
-	//	{
-	//		position: new Vector(-24, 0, 24),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	}, guide5);
-	//var guide3 = new Guide(
-	//	{
-	//		position: new Vector(-30, 0, 9),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	}, guide4);
-	//var guide2 = new Guide(
-	//	{
-	//		position: new Vector(-21, 0, 6),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	}, guide3);
-	//var guide1 = new Guide(
-	//	{
-	//		position: new Vector(-15, 0, 0),
-	//		soundType: SceneObject.SoundTypeEnum.echo
-	//	}, guide2);
-	//
-	//this.scene.addObject(guide6);
-	//this.scene.addObject(guide5);
-	//this.scene.addObject(guide4);
-	//this.scene.addObject(guide3);
-	//this.scene.addObject(guide2);
-	//this.scene.addObject(guide1);
-
 
 	this.scene.addObject(new Talker(
 		{
 			position: new Vector(-3, 0, 0),
 			soundType: SceneObject.SoundTypeEnum.echo,
 			alias: 'talker'
-		}
-		, nextGuide));
+		}, nextGuide));
+
+	var walker = new Walker(
+		{
+			position: new Vector(1, 0, 1),
+			soundType: SceneObject.SoundTypeEnum.echo,
+			alias: 'walker'
+		});
+
+	this.scene.addObject(walker);
+
+	walker.walk(new Vector(-2, 0, 5), 1);
 
 
-	var mineLocations = [[-12, 3], [-12, 3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3]];
 
-	for(var i in mineLocations){
+	var mineLocations = [[-12, 3], [-12, -3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3]];
+
+	for (var i in mineLocations) {
 		var location = mineLocations[i];
 		this.scene.addObject(new LandMine(
 			{
@@ -126,6 +99,13 @@ JessesGame.prototype.createScene = function () {
 		}
 	));
 
+	this.scene.addObject(new Dog(
+		{
+			position: new Vector(-2, 0, -2),
+			soundType: SceneObject.SoundTypeEnum.echo,
+			alias: 'dog'
+		}, this.scene.playerObject
+	));
 
 	this.scene.addEchoObject(new EchoObject(new Vector2(-65, 35), new Vector2(-65, 25)));
 	this.scene.addEchoObject(new EchoObject(new Vector2(-65, 25), new Vector2(-45, 25)));

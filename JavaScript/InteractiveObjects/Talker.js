@@ -2,7 +2,6 @@ function Talker(options, firstGuide) {
 	SceneObject.call(this, options);
 	this.behavior = null;
 	this.firstGuide = firstGuide;
-	console.log("firstGuide: " + this.firstGuide);
 }
 
 Talker.prototype = Object.create(SceneObject.prototype);

@@ -1,5 +1,4 @@
-﻿
-// The environment the sounds are played
+﻿// The environment the sounds are played
 // All units in meters.
 function Scene() {
 
@@ -8,7 +7,7 @@ function Scene() {
 	this.orientation = new Matrix();	// The orientation of the player
 	//this.earInfo = new EarInfo();		// Used by the SpatialSound objects (if not using SpatialSound this is not relevant)
 	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects.  Contains the player's orientation for proper sound.
-	this.playerObject = new SceneObject({ scene: this });		// Used for sound emitted by the user.
+	this.playerObject = new SceneObject({scene: this});		// Used for sound emitted by the user.
 	this.setPlayerPosition(0, 0, 0);
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
 
@@ -29,20 +28,20 @@ function Scene() {
 	this.forwardRange1 = new Range(MathExt.degToRad(270 - 120), MathExt.degToRad(360));	// Split in 2 because it crosses the '0 line'
 	this.forwardRange2 = new Range(0, MathExt.degToRad(30));
 	this.backRange = new Range(MathExt.degToRad(90 - 30), MathExt.degToRad(90 + 30));
-	
+
 	// Touch params
 	this.lastTouchPos = null;	// The position of the touch the last time it was recorded.
 	this.moveMode = "none";	//   Movement mode.  'none' | 'forward' | 'head' | 'back' | 'side'
 	this.moveInitialAngle = 0.0;	// The angle of the player object when the user entered the 'forward zone'.
-	
-	this.nextID = 0;	
+
+	this.nextID = 0;
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
 	this.echoObjects = [];
 	this.pedometer = 0.0;		// Distance travelled.  Used for stepping sound.
 	this.numSteps = 0;			// Number of steps taken.  Used for stepping sound.
-	
+
 	// Subscribe to orientation messages sent from devices like a phone.
-	this.usePhoneOrientation = true;	
+	this.usePhoneOrientation = true;
 	if (this.usePhoneOrientation)
 		DeviceMotion.subscribe(this);
 
@@ -51,28 +50,42 @@ function Scene() {
 }
 
 
-
-
 Scene.prototype.setCanvas = function (canvasElement /* HTML Canvas */) {
 	this.canvas = new Canvas2D(canvasElement);
 	this.canvas.setProjection(this.position.x, this.position.z, 40);	 // Center at 0, 0.  40 pixels per unit.
 
 	this.moveMaxRadius = Math.min(this.canvas.width, this.canvas.height) / 2.0;
 	this.rotateMaxRadius = this.deadZoneRadius + (this.moveMaxRadius - this.deadZoneRadius) * 0.25;
-		
+
 	var self = this;
-	this.canvas.onMouseDown =	function (x, z) { self.onMouseDown(x, z); };
-	this.canvas.onMouseUp =		function (x, z) { self.onMouseUp(x, z); };
-	this.canvas.onMouseMove =	function (x, z) { self.onMouseMove(x, z); };
-	this.canvas.onMouseWheel = function (delta) { return self.onMouseWheel(delta); };
-	this.canvas.onKeyDown = function (key, x, z) { return self.onKeyDown(key, x, z); };	// returns if it was handled
+	this.canvas.onMouseDown = function (x, z) {
+		self.onMouseDown(x, z);
+	};
+	this.canvas.onMouseUp = function (x, z) {
+		self.onMouseUp(x, z);
+	};
+	this.canvas.onMouseMove = function (x, z) {
+		self.onMouseMove(x, z);
+	};
+	this.canvas.onMouseWheel = function (delta) {
+		return self.onMouseWheel(delta);
+	};
+	this.canvas.onKeyDown = function (key, x, z) {
+		return self.onKeyDown(key, x, z);
+	};	// returns if it was handled
 
 	// Touch functionality
 	this.canvas.limitTo1Touch = true;
-	this.canvas.onTouchStart = function (touch) { self.onTouchStart();  }
-	this.canvas.onTouchMove = function (touch) { self.onTouchStart();   }
-	this.canvas.onTouchEnd = function (touch)  { self.onTouchEnd();  }
-	
+	this.canvas.onTouchStart = function (touch) {
+		self.onTouchStart();
+	}
+	this.canvas.onTouchMove = function (touch) {
+		self.onTouchStart();
+	}
+	this.canvas.onTouchEnd = function (touch) {
+		self.onTouchEnd();
+	}
+
 	this.needsRedraw = true;
 }
 
@@ -103,7 +116,7 @@ Scene.prototype.setPlayerPosition = function (xOrVec, y /* opt */, z /* opt */) 
 	this.listener.setPosition(this.position.x, this.position.y, this.position.z);
 	if (this.canvas)
 		this.canvas.setCenter(this.position.x, this.position.z);
-	this.playerObject.setPosition(this.position)
+	this.playerObject.setPosition(this.position);
 	this.updateEarInfo();
 	this.needsRedraw = true;
 }
@@ -154,13 +167,12 @@ Scene.prototype.getPlayerDirection = function () {
 }
 
 // Set the player's direction on the xz plane as an angle from (1, 0)
-Scene.prototype.setPlayerDirectionA = function (dir /* Number */)
-{
+Scene.prototype.setPlayerDirectionA = function (dir /* Number */) {
 	this.setPlayerDirection(new Vector(Math.cos(dir), 0.0, Math.sin(dir)));
 }
 
 // Set a player's direction on the xz plane.
-Scene.prototype.setPlayerDirection = function (dir /* Vec3 */)  {
+Scene.prototype.setPlayerDirection = function (dir /* Vec3 */) {
 	this.setOrientationAxes(dir.cross(new Vector(0, 1, 0)), new Vector(0, 1, 0), dir);
 }
 
@@ -185,7 +197,7 @@ Scene.prototype.movePlayer = function (vec) {
 Scene.prototype.addObject = function (sceneObject) {
 	sceneObject.scene = this;
 	sceneObject.sceneID = this.nextID++;
-	this.objects[sceneObject.sceneID] = sceneObject; 
+	this.objects[sceneObject.sceneID] = sceneObject;
 	this.needsRedraw = true;
 }
 
@@ -200,7 +212,7 @@ Scene.prototype.addEchoObject = function (echoObject) {
 	this.echoObjects.push(echoObject);
 }
 
-Scene.prototype.getEchoObjects = function() {
+Scene.prototype.getEchoObjects = function () {
 	return this.echoObjects;
 }
 
@@ -220,7 +232,7 @@ Scene.prototype.stopAllSounds = function () {
 }
 
 Scene.prototype.onMouseDown = function (x, z) {
-	
+
 	var clickLoc = new Vector(x, 0, z);
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
@@ -231,7 +243,7 @@ Scene.prototype.onMouseDown = function (x, z) {
 				break;
 			}
 		}
-	}		
+	}
 }
 
 Scene.prototype.onMouseUp = function (x, z) {
@@ -268,36 +280,44 @@ Scene.prototype.onTouchEnd = function (touchEvent) {
 }
 
 Scene.prototype.onKeyDown = function (keyCode, x, z) {
-	
+
 	console.log("Key '" + keyCode + "' pressed at: " + x + ", " + z);
 	var handled = false;
 	switch (keyCode) {
-		case 37: {   // left arrow
+		case 37:
+		{   // left arrow
 			this.movePlayer(new Vector(0.2, 0, 0));
 			handled = true;
 			break;
 		}
-		case 38: case 87: {   // up arrow, W
+		case 38:
+		case 87:
+		{   // up arrow, W
 			this.movePlayer(new Vector(0, 0, 0.2));
 			handled = true;
 			break;
 		}
-		case 39: {   // right arrow
+		case 39:
+		{   // right arrow
 			this.movePlayer(new Vector(-0.2, 0, 0));
 			handled = true;
 			break;
 		}
-		case 40: case 83: {   // down arrow, S
+		case 40:
+		case 83:
+		{   // down arrow, S
 			this.movePlayer(new Vector(0, 0, -0.2));
 			handled = true;
 			break;
 		}
-		case 65: {  // A
+		case 65:
+		{  // A
 			this.rotatePlayer(10.0);
 			handled = true;
 			break;
 		}
-		case 68: {  // D
+		case 68:
+		{  // D
 			this.rotatePlayer(-10.0);
 			handled = true;
 			break;
@@ -308,7 +328,7 @@ Scene.prototype.onKeyDown = function (keyCode, x, z) {
 
 // Move the player according to any touches currently 
 Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
-	
+
 	var canvas = this.canvas;
 	if (!this.canvas)
 		return;
@@ -323,19 +343,19 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 	if (interval == 0) {
 		return;
 	}
-		
+
 	var touch = canvas.getFirstTouch();
 	var vecFromCenter = canvas.vecFromCenter(touch.canvasX, touch.canvasY);
 	var magnitude = vecFromCenter.length();
 	var angle = vecFromCenter.angle();		// In radians
-	
+
 	// Update which zone the touch is in.
 	if (magnitude >= this.deadZoneRadius && this.moveMode == "none") {
-		if (this.forwardRange1.contains(angle) || this.forwardRange2.contains(angle))  {
+		if (this.forwardRange1.contains(angle) || this.forwardRange2.contains(angle)) {
 			this.moveMode = "forward";
 			this.moveInitialAngle = this.getPlayerDirectionA();
 		}
-		else if (this.backRange.contains(angle))  {
+		else if (this.backRange.contains(angle)) {
 			this.moveMode = "back";
 			this.moveInitialAngle = this.getPlayerDirectionA();
 		}
@@ -344,26 +364,34 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 		if (this.moveMode == "back") { // the 'dead zone'
 			this.lastTouchPos = null;
 			this.moveMode = "none";
-			return;	
+			return;
 		}
 	}
 
 	magnitude = Math.min(this.moveMaxRadius, magnitude);
-	
-	if (this.moveMode == "forward" && magnitude >= this.deadZoneRadius) {	
+
+	if (this.moveMode == "forward" && magnitude >= this.deadZoneRadius) {
 		// Update the orientation.  Make sure the orientation does not 'snap' to the new one.
 		var desiredAngle = this.moveInitialAngle + (angle - MathExt.degToRad(270));
 		maxAngleChange = this.maxRotateVelocity * (interval / 1000);
 		var currentAngle = this.getPlayerDirectionA();
 		var newAngle = currentAngle;
 
-		if (desiredAngle > Math.PI * 2.0)  { desiredAngle -= Math.PI * 2.0;  }
-		if (desiredAngle < 0)  { desiredAngle += Math.PI * 2.0;  }
+		if (desiredAngle > Math.PI * 2.0) {
+			desiredAngle -= Math.PI * 2.0;
+		}
+		if (desiredAngle < 0) {
+			desiredAngle += Math.PI * 2.0;
+		}
 
 		// Find the shortest route between the angles
-		if (desiredAngle - currentAngle >= Math.PI) {	desiredAngle -= Math.PI * 2.0;		}
-		if (currentAngle - desiredAngle >= Math.PI) {	desiredAngle += Math.PI * 2.0;		}
-		
+		if (desiredAngle - currentAngle >= Math.PI) {
+			desiredAngle -= Math.PI * 2.0;
+		}
+		if (currentAngle - desiredAngle >= Math.PI) {
+			desiredAngle += Math.PI * 2.0;
+		}
+
 		if (Math.abs(desiredAngle - currentAngle) <= maxAngleChange) {
 			newAngle = desiredAngle;
 		}
@@ -382,7 +410,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, {offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0)});
 			}
 		}
 	}
@@ -397,13 +425,13 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, {offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0)});
 			}
 		}
 	}
 }
 
-Scene.prototype.onBehavior = function() {
+Scene.prototype.onBehavior = function () {
 
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
@@ -418,13 +446,13 @@ Scene.prototype.onBehavior = function() {
 
 // Inform all objects that they are about to be drawn.  Interval is ms since the last redraw.
 Scene.prototype.onRedraw = function (interval) {
-		
+
 	// Notify all objects that they are about to be drawn.  This would be a good opportunity for them to update
 	// their position.
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
 			var obj = this.objects[id];
-			if (obj.onPredraw)  {
+			if (obj.onPredraw) {
 				obj.onPredraw(this, interval);
 			}
 		}
@@ -442,7 +470,7 @@ Scene.prototype.redraw = function (interval) {
 	}
 
 	this.updateTouchMovement(interval);
-		
+
 	if (!this.needsRedraw)
 		return;
 
@@ -454,7 +482,7 @@ Scene.prototype.redraw = function (interval) {
 		canvas.drawLine(x, -50, x, 50, "rgb(150, 180, 150)");
 	for (var y = -50; y <= 50; y += 10)
 		canvas.drawLine(-50, y, 50, y, "rgb(180, 150, 150)");
-	
+
 	var tic = .25;
 	canvas.drawLine(-tic, 5, tic, 5, "rgb(100, 100, 100)");	// draw a tick at 5.
 	canvas.drawText("+5X", 4.6, -tic * 1.25);
@@ -463,13 +491,13 @@ Scene.prototype.redraw = function (interval) {
 	canvas.drawLine(5, -tic, 5, tic, "rgb(100, 100, 100)");	// draw a tick at 5.
 	canvas.drawText("+5Z", tic * 1.25, 4.9);
 	canvas.drawLine(-5, -tic, -5, tic, "rgb(100, 100, 100)");	// draw a tick at 5.
-	
+
 	this.playerObject.draw(canvas);
 
 	// Draw the player
 	var pos = this.position;
 	var dir = this.getPlayerDirection();
-	dir.setLength(1.0);		
+	dir.setLength(1.0);
 	canvas.drawCircle(pos.x, pos.z, 0.2 /* radius */, "rgb(10, 10, 10)", "rgb(50, 50, 200)");
 	canvas.drawLine(pos.x, pos.z, pos.x + dir.x, pos.z + dir.z, "rgb(255, 0, 0)");
 
@@ -480,7 +508,7 @@ Scene.prototype.redraw = function (interval) {
 			obj.draw(canvas);
 		}
 	}
-	
+
 	// Draw each echo object
 	for (var i = 0; i < this.echoObjects.length; i++) {
 		this.echoObjects[i].draw(canvas);
@@ -493,13 +521,13 @@ Scene.prototype.redraw = function (interval) {
 		var p = new Vector2(Math.cos(angle), Math.sin(angle));
 		var p1 = p.clone().setLength(start).add(center);
 		var p2 = p.clone().setLength(end).add(center);
-		canvas.drawLineVC(p1, p2, color);		
+		canvas.drawLineVC(p1, p2, color);
 	}
-	
+
 	canvas.drawCircleC(center.x, center.y, this.deadZoneRadius, "rgb(100, 150, 240)", null /* fill */);		// The inner circle
-	
-	
-	if (this.moveMode == "none") {	
+
+
+	if (this.moveMode == "none") {
 		// forward area
 		canvas.drawCircleC(center.x, center.y, this.moveMaxRadius, "rgb(100, 150, 240)", null /* fill */, this.forwardRange1.start, this.forwardRange2.end);
 		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.forwardRange1.start, "rgb(100, 150, 240)");
@@ -519,7 +547,7 @@ Scene.prototype.redraw = function (interval) {
 		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.start, "rgb(240, 150, 100)");
 		drawRadialLine(this.deadZoneRadius, this.moveMaxRadius, this.backRange.end, "rgb(240, 150, 100)");
 	}
-	
+
 	var touch = canvas.getFirstTouch();
 	if (touch)
 		canvas.drawCircleC(touch.canvasX, touch.canvasY, 30, "rgb(60, 120, 150)", "rgb(120, 175, 220)");

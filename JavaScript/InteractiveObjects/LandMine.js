@@ -35,7 +35,7 @@ LandMine.prototype.detonate = function () {
 		console.log("You dead");
 	}
 	this.behavior = new Nothing();
-
+	this.scene.removeObject(this);
 };
 
 LandMine.prototype.disengage = function () {

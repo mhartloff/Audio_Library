@@ -1,5 +1,5 @@
 function Nothing() {
 }
 
-Nothing.prototype.onBehavior = function () {
+Nothing.prototype.onBehavior = function (scene) {
 };
