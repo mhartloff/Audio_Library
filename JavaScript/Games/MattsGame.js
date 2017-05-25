@@ -126,9 +126,9 @@ MattsGame.prototype.createHostObject = function () {
 				else {
 					console.log(angle);
 					var i = Math.random() * 100;
-					if (i <= 1.0)
+					if (i <= 0.0)
 						this.play(WebAudio.getSoundSource("froggy"));
-					else if (i <= 8.0 && this.hostState == 1)
+					else if (i <= 15.0 && this.hostState == 1)
 						this.play(WebAudio.getSoundSource("Hurry" + Math.floor(Math.random() * 2)));
 					else {
 						if (angle > 330 || angle < 30) 
@@ -166,9 +166,6 @@ MattsGame.prototype.createHostObject = function () {
 					if (distance < 0.5) {
 						this.play(WebAudio.getSoundSource("GreatJob" + this.hostState));
 						this.state = 'over'
-					}
-					else if (num < 0.5) {
-						this.play(WebAudio.getSoundSource("froggy"));
 					}
 				}
 			}

@@ -133,7 +133,7 @@ SceneObject.prototype.play = function (soundSource, repeat, delay, options) {
 		newSound.onEnded = function (sound) { self.onEnded(sound); };
 		//newSound.setRepeat(repeat !== undefined ? repeat : false);
 		newSound.setRepeat && newSound.setRepeat(repeat);
-		newSound.setDelay && newSound.setDelay(delay);
+		newSound.setDelay && delay && newSound.setDelay(delay);
 		newSound.setLocation && newSound.setLocation(this.position, this.direction);
 		if (options) {
 			newSound.setOffset && options.offset && newSound.setOffset(options.offset);
