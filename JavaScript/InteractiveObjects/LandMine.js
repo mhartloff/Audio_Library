@@ -10,7 +10,6 @@ LandMine.prototype.constructor = LandMine;
 
 LandMine.prototype.onBehavior = function (scene) {
 	if(this.behavior === null){
-		//this.play(WebAudio.getSoundSource("shortBeep"), false);
 		var self = this;
 		this.behavior = new ProximityBehavior(this, 2, function () {self.engage()});
 	}

@@ -18,18 +18,21 @@ Talker.prototype.onBehavior = function (scene) {
 };
 
 Talker.prototype.engage = function () {
-	console.log("engage");
 	this.stop();
-	this.play(WebAudio.getSoundSource("openingDialog"), false);
-	console.log("firstGuide: " + this.firstGuide);
-	self = this;
-	setTimeout(function(){self.firstGuide.startGuiding()}, 17000);
+	//this.play(WebAudio.getSoundSource("openingDialog"), false);
 	var self = this;
-	this.behavior = new EngagedBehavior(this, 4, function () {self.disengage()});
+	this.behavior = new SoundBehavior(this, WebAudio.getSoundSource("openingDialog"), function(){
+		self.firstGuide.startGuiding();
+		self.behavior = new EngagedBehavior(self, 4, function () {self.disengage()});
+	});
+	this.behavior.play();
+	//self = this;
+	//setTimeout(function(){self.firstGuide.startGuiding()}, 17000);
+	//var self = this;
+	//this.behavior = new EngagedBehavior(this, 4, function () {self.disengage()});
 };
 
 Talker.prototype.disengage = function () {
-	console.log("disengage");
 	this.stop();
 	this.play(WebAudio.getSoundSource("wasTalking"), false);
 	this.play(WebAudio.getSoundSource("Scream"), true, 2);

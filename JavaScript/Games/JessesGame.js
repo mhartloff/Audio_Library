@@ -73,7 +73,7 @@ JessesGame.prototype.createScene = function () {
 			alias: 'walker'
 		});
 
-	this.scene.addObject(walker);
+	//this.scene.addObject(walker);
 
 	walker.walk(new Vector(-2, 0, 5), 1);
 
