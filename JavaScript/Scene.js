@@ -181,6 +181,17 @@ Scene.prototype.movePlayer = function (vec) {
 	this.setPlayerPosition(this.getPlayerPosition().add(transformedVec));
 }
 
+Scene.prototype.getObjectByAlias = function (alias) {
+	for (var id in this.objects) {
+		if (this.objects.hasOwnProperty(id)) {
+			var obj = this.objects[id];
+			if (obj.alias == alias)
+				return obj;
+		}
+	}
+	return null;
+}
+
 // Add an object to the scene
 Scene.prototype.addObject = function (sceneObject) {
 	sceneObject.scene = this;
@@ -382,7 +393,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -2.5, 0) });	
 			}
 		}
 	}
@@ -397,7 +408,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 			this.pedometer += moveDistance;
 			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
 				this.numSteps = Math.floor(this.pedometer / this.stepSize);
-				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -2.5, 0) });	
 			}
 		}
 	}
