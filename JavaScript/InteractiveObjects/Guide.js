@@ -22,8 +22,8 @@ Guide.prototype.onBehavior = function (scene) {
 Guide.prototype.engage = function () {
 	console.log("engage");
 	this.stop();
-	this.play(WebAudio.getSoundSource("nextGuide"), false);
-	if(this.nextGuide) {
+	if(this.nextGuide !== undefined) {
+		this.play(WebAudio.getSoundSource("nextGuide"), false);
 		this.nextGuide.startGuiding();
 	}
 	var self = this;

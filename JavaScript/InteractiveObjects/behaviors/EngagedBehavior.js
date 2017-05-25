@@ -12,6 +12,5 @@ EngagedBehavior.prototype.onBehavior = function (scene) {
 
 EngagedBehavior.prototype.triggered = function (scene) {
 	var distanceToPlayer = scene.getPlayerPosition().distance(this.sceneObject.getPosition());
-	console.log(distanceToPlayer);
 	return distanceToPlayer > this.distance;
 };

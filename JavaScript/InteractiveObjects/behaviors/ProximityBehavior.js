@@ -12,6 +12,5 @@ ProximityBehavior.prototype.onBehavior = function (scene) {
 
 ProximityBehavior.prototype.triggered = function (scene) {
 	var distanceToPlayer = scene.getPlayerPosition().distance(this.sceneObject.getPosition());
-	console.log(distanceToPlayer);
 	return distanceToPlayer < this.distance;
 };

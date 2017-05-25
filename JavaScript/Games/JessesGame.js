@@ -3,7 +3,9 @@ function JessesGame(canvas) {
 	this.loadAllSounds();
 	self = this;
 
-	setTimeout(function(){self.createScene()}, 1000);
+	setTimeout(function () {
+		self.createScene()
+	}, 1000);
 }
 
 JessesGame.prototype = Object.create(Game.prototype);
@@ -28,6 +30,7 @@ JessesGame.prototype.loadAllSounds = function () {
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Power.mp3", "power");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Die.mp3", "die");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/InCharge.mp3", "inCharge");
+	WebAudio.loadSoundSource("Sounds/TextToSpeech/Explosion.mp3", "explosion");
 };
 
 
@@ -39,46 +42,60 @@ JessesGame.prototype.createScene = function () {
 	this.scene.addEchoObject(new EchoObject(new Vector2(-4, 4), new Vector2(-4, 1)));
 	this.scene.addEchoObject(new EchoObject(new Vector2(-4, -1), new Vector2(-4, -4)));
 
+	var guideLocations = [[-45, 30], [-30, 36], [-24, 24], [-30, 9], [-21, 6], [-15, 0]];
 
-	var guide6 = new Guide(
-		{
-			position: new Vector(-45, 0, 30),
-			soundType: SceneObject.SoundTypeEnum.echo
-		});
-	var guide5 = new Guide(
-		{
-			position: new Vector(-30, 0, 36),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}, guide6);
-	var guide4 = new Guide(
-		{
-			position: new Vector(-24, 0, 24),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}, guide5);
-	var guide3 = new Guide(
-		{
-			position: new Vector(-30, 0, 9),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}, guide4);
-	var guide2 = new Guide(
-		{
-			position: new Vector(-21, 0, 6),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}, guide3);
-	var guide1 = new Guide(
-		{
-			position: new Vector(-15, 0, 0),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}, guide2);
+	var nextGuide = undefined;
 
-	this.scene.addObject(guide6);
-	this.scene.addObject(guide5);
-	this.scene.addObject(guide4);
-	this.scene.addObject(guide3);
-	this.scene.addObject(guide2);
-	this.scene.addObject(guide1);
+	for(var j in guideLocations){
+		var guideLocation = guideLocations[j];
+		var guide = new Guide(
+			{
+				position: new Vector(guideLocation[0], 0, guideLocation[1]),
+				soundType: SceneObject.SoundTypeEnum.echo
+			}, nextGuide);
+		this.scene.addObject(guide)
+		nextGuide = guide;
+	}
 
-	console.log("firstGuide: " + guide1);
+
+	//var guide6 = new Guide(
+	//	{
+	//		position: new Vector(-45, 0, 30),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	});
+	//var guide5 = new Guide(
+	//	{
+	//		position: new Vector(-30, 0, 36),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	}, guide6);
+	//var guide4 = new Guide(
+	//	{
+	//		position: new Vector(-24, 0, 24),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	}, guide5);
+	//var guide3 = new Guide(
+	//	{
+	//		position: new Vector(-30, 0, 9),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	}, guide4);
+	//var guide2 = new Guide(
+	//	{
+	//		position: new Vector(-21, 0, 6),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	}, guide3);
+	//var guide1 = new Guide(
+	//	{
+	//		position: new Vector(-15, 0, 0),
+	//		soundType: SceneObject.SoundTypeEnum.echo
+	//	}, guide2);
+	//
+	//this.scene.addObject(guide6);
+	//this.scene.addObject(guide5);
+	//this.scene.addObject(guide4);
+	//this.scene.addObject(guide3);
+	//this.scene.addObject(guide2);
+	//this.scene.addObject(guide1);
+
 
 	this.scene.addObject(new Talker(
 		{
@@ -86,67 +103,20 @@ JessesGame.prototype.createScene = function () {
 			soundType: SceneObject.SoundTypeEnum.echo,
 			alias: 'talker'
 		}
-	, guide1));
+		, nextGuide));
 
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-12, 0, 3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-12, 0, -3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
 
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-10, 0, 3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-10, 0, -3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
+	var mineLocations = [[-12, 3], [-12, 3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3]];
 
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-8, 0, 3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-8, 0, -3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-6, 0, 3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-6, 0, -3),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-
-	this.scene.addObject(new LandMine(
-		{
-			position: new Vector(-12, 0, -12),
-			soundType: SceneObject.SoundTypeEnum.echo
-		}
-	));
-
+	for(var i in mineLocations){
+		var location = mineLocations[i];
+		this.scene.addObject(new LandMine(
+			{
+				position: new Vector(location[0], 0, location[1]),
+				soundType: SceneObject.SoundTypeEnum.echo
+			}, this.scene
+		));
+	}
 
 	this.scene.addObject(new General(
 		{

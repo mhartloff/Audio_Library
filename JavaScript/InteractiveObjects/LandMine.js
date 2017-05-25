@@ -1,6 +1,7 @@
-function LandMine(options) {
+function LandMine(options, scene) {
 	SceneObject.call(this, options);
 	this.behavior = null;
+	this.scene = scene;
 }
 
 LandMine.prototype = Object.create(SceneObject.prototype);
@@ -21,7 +22,20 @@ LandMine.prototype.engage = function () {
 	this.stop();
 	this.play(WebAudio.getSoundSource("shortBeep"), true);
 	var self = this;
-	this.behavior = new EngagedBehavior(this, 3, function () {self.disengage()});
+	this.behavior = new DelayedBehavior(this, 3000, function () {self.detonate()});
+	//this.behavior = new EngagedBehavior(this, 3, function () {self.disengage()});
+};
+
+LandMine.prototype.detonate = function () {
+	console.log("detonated");
+	this.stop();
+	this.play(WebAudio.getSoundSource("explosion"), false);
+	var distanceToPlayer = this.scene.getPlayerPosition().distance(this.getPosition());
+	if( distanceToPlayer < 3){
+		console.log("You dead");
+	}
+	this.behavior = new Nothing();
+
 };
 
 LandMine.prototype.disengage = function () {

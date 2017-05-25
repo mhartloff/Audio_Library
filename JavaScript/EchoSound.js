@@ -86,6 +86,7 @@ EchoSound.prototype.play = function () {
 	sourceSound.setLocation(this.position, this.direction);
 	sourceSound.setOffset(this.offset);
 	sourceSound.setRepeat(this.loop);
+	sourceSound.setDelay(this.delay);
 	this.echoSounds.push(sourceSound);
 
 	var self = this;

@@ -35,7 +35,7 @@ Sound.prototype.getSourceNode = function () {
 Sound.prototype.setDelay = function (seconds) {
 	//this.delayNode.delay.value = seconds;
 	this.delay = seconds;
-	console.log("delay: " + this.delay);
+	//console.log("delay: " + this.delay);
 }
 
 Sound.prototype.setRepeat = function (repeat /* bool */) {
