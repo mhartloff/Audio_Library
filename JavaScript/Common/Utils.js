@@ -402,6 +402,11 @@ function Vector(x/*float*/, y/*float*/, z/*float*/) {
     this.z = z == undefined ? 0.0 : z;
 }
 
+Vector.x = new Vector(1, 0, 0);
+Vector.Y = new Vector(0, 1, 0);
+Vector.Z = new Vector(0, 0, 1);
+
+
 // set (x,y,z) or set(vec)
 Vector.prototype.set = function (xOrVec, y, z) {
 	if (xOrVec.x !== undefined) {

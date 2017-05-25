@@ -9,8 +9,10 @@ function EchoSound(source, scene) {
 
 	this.position = new Vector(0, 1, 0);	// Location in the scene.
 	this.direction = new Vector(0, 0, 1);	// Always has a vector length of 1.
+	this.offset = new Vector(0, 0, 0);		// Offset of the sound source from the position.
 
 	//this.origSound = new PannerSound(source);
+
 
 	//var self = this;
 	//this.origSound.onEnded = function (sound) {
@@ -39,7 +41,6 @@ EchoSound.prototype.getPosition = function () {
 
 EchoSound.prototype.setPosition = function (vec) {
 	this.position.set(vec);
-	//this.pannerNode.setPosition(this.position.x, this.position.y, this.position.z);
 };
 
 // Note: Safari does not support direct retrieval of the orientation from the node (ie this.pannerNode.orientationX.value)
@@ -50,8 +51,11 @@ EchoSound.prototype.getDirection = function () {
 EchoSound.prototype.setDirection = function (vec) {
 	this.direction.set(vec);
 	this.direction.normalize();
-	//this.pannerNode.setOrientation(this.direction.x, this.direction.y, this.direction.z);  // forward direction x, y, z, up vector x, y, z
 };
+
+EchoSound.prototype.setOffset = function (offset /* Vector */) {
+	this.offset.set(offset);
+}
 
 
 EchoSound.prototype.setLocation = function (pos, dir) {
@@ -78,11 +82,14 @@ EchoSound.prototype.setRepeat = function (repeat /* bool */) {
 EchoSound.prototype.play = function () {
 
 	//this.origSound.play();
-	var OG = new PannerSound(this.source);
-	OG.setLocation(this.position, this.direction);
-	OG.setRepeat(this.loop);
-	OG.setDelay(this.delay);
-	this.echoSounds.push(OG);
+	var sourceSound = new PannerSound(this.source);
+	sourceSound.setLocation(this.position, this.direction);
+	sourceSound.setOffset(this.offset);
+	sourceSound.setRepeat(this.loop);
+	this.echoSounds.push(sourceSound);
+
+	var self = this;
+	sourceSound.onEnded = function (sound) {		self.onEnded && self.onEnded(self);	};
 
 	var echoObjects = this.scene.echoObjects;
 	var listenerLocation = this.scene.position;
@@ -97,7 +104,7 @@ EchoSound.prototype.play = function () {
 			// TODO: get echo point
 			var echoPoint = echoObject.getLineSegment().getCenter();
 			//var echoPoint = new Vector2(1, 2);
-			var distance1 = this.position.distance(new Vector(echoPoint.x, 0, echoPoint.y));
+			var distance1 = sourceSound.soundOrigin.distance(new Vector(echoPoint.x, 0, echoPoint.y));
 			var echoSound = new PannerSound(this.source);
 			echoSound.setPosition(new Vector(echoPoint.x, 0, echoPoint.y));
 			//echoSound.setLocation(echoPoint, echoPoint.angleBetween(listenerLocation));

@@ -9,6 +9,7 @@ function SceneObject(options)  {
 	this.alias = null;	// A text string for casual identification
 	this.soundType = SceneObject.SoundTypeEnum['echo'];
 	this.soundOptions = null;		// A canvas to output information about the sound playing, if the sound supports it.
+	this.scene = null;	// populated when/if it is added to a scene.  Can also be added under 'options'
 
 	$.extend(this, options);
 	if (options) {
@@ -16,7 +17,7 @@ function SceneObject(options)  {
 		if (options.direction) this.direction = options.direction.clone();
 	}
 
-	this.scene = null;	// populated when/if it is added to a scene.
+	
 	this.sounds = [];		// All currently playing sounds
 
 	// Callback function called on every physics update, which is generally less frequent than redraw.
@@ -91,8 +92,9 @@ SceneObject.prototype.draw = function (canvas) {
 	// Here we could draw each sound individually, such as an echo sound.
 }
 
-
-SceneObject.prototype.play = function (soundSource, repeat, delay) {
+// Options:
+//		offset (Vector):  Position offset from the source position.  For instance, coming from an object's head or feet instead of its center.
+SceneObject.prototype.play = function (soundSource, repeat, delay, options) {
 
 	if (!soundSource) {
 		console.error("Trying to play an invalid sound source!");
@@ -135,6 +137,9 @@ SceneObject.prototype.play = function (soundSource, repeat, delay) {
 		//newSound.setDelay && delay !== undefined && newSound.setDelay(delay);
 		delay !== undefined && newSound.setDelay(delay);
 		newSound.setLocation && newSound.setLocation(this.position, this.direction);
+		if (options) {
+			newSound.setOffset && options.offset && newSound.setOffset(options.offset);
+		}
 
 		newSound.play();
 		this.isPlaying = true;

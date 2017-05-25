@@ -8,6 +8,7 @@ function Scene() {
 	this.orientation = new Matrix();	// The orientation of the player
 	//this.earInfo = new EarInfo();		// Used by the SpatialSound objects (if not using SpatialSound this is not relevant)
 	this.listener = WebAudio.context.listener;	// Used by the PannerSound objects.  Contains the player's orientation for proper sound.
+	this.playerObject = new SceneObject({ scene: this });		// Used for sound emitted by the user.
 	this.setPlayerPosition(0, 0, 0);
 	this.setOrientationAxes(new Vector(-1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, -1));
 
@@ -18,35 +19,35 @@ function Scene() {
 	this.maxVelocity = 2.0;		// The fastest in meters / sec that the user can move forward.
 	this.maxBackVelocity = 1.0;// The fastest in meters / sec that the user can move backwards.
 	this.maxRotateVelocity = MathExt.degToRad(180.0);	// Max rotation velocity in radians / sec
-
+	this.stepSize = 1.0;			// Size of each step, in meters.
 
 	// Graphics and UI
 	this.canvas = null;			// Canvas2D object which the scene is displayed (optional)
 	this.needsRedraw = false;
 	this.selectedObject = null;
-
-	{
-		// Settings that effect the range of movement allowed.
-		this.forwardRange1 = new Range(MathExt.degToRad(270 - 120), MathExt.degToRad(360));	// Split in 2 because it crosses the '0 line'
-		this.forwardRange2 = new Range(0, MathExt.degToRad(30));
-		this.backRange = new Range(MathExt.degToRad(90 - 30), MathExt.degToRad(90 + 30));
-	}
-
+	// Settings that effect the range of movement allowed.
+	this.forwardRange1 = new Range(MathExt.degToRad(270 - 120), MathExt.degToRad(360));	// Split in 2 because it crosses the '0 line'
+	this.forwardRange2 = new Range(0, MathExt.degToRad(30));
+	this.backRange = new Range(MathExt.degToRad(90 - 30), MathExt.degToRad(90 + 30));
+	
 	// Touch params
 	this.lastTouchPos = null;	// The position of the touch the last time it was recorded.
 	this.moveMode = "none";	//   Movement mode.  'none' | 'forward' | 'head' | 'back' | 'side'
 	this.moveInitialAngle = 0.0;	// The angle of the player object when the user entered the 'forward zone'.
-
-	var self = this;
 	
 	this.nextID = 0;	
 	this.objects = {};			// Map of all objects in the scene.  ID -> SceneObject
 	this.echoObjects = [];
+	this.pedometer = 0.0;		// Distance travelled.  Used for stepping sound.
+	this.numSteps = 0;			// Number of steps taken.  Used for stepping sound.
 	
 	// Subscribe to orientation messages sent from devices like a phone.
 	this.usePhoneOrientation = true;	
 	if (this.usePhoneOrientation)
 		DeviceMotion.subscribe(this);
+
+	WebAudio.loadSoundSource("Sounds/Footsteps - Single2.mp3", "stepForward");
+	WebAudio.loadSoundSource("Sounds/Footsteps - Single6.mp3", "stepBack");
 }
 
 
@@ -102,6 +103,7 @@ Scene.prototype.setPlayerPosition = function (xOrVec, y /* opt */, z /* opt */) 
 	this.listener.setPosition(this.position.x, this.position.y, this.position.z);
 	if (this.canvas)
 		this.canvas.setCenter(this.position.x, this.position.z);
+	this.playerObject.setPosition(this.position)
 	this.updateEarInfo();
 	this.needsRedraw = true;
 }
@@ -112,6 +114,7 @@ Scene.prototype.setOrientation = function (orientation /* Matrix */) {
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
 	// setOrientation: [forward.x, forward.y, forward.z, up.x, up.y, up.z]
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
+	this.playerObject.setDirection(this.getPlayerDirection());
 	this.updateEarInfo();
 
 	if (this.canvas) {
@@ -126,6 +129,7 @@ Scene.prototype.setOrientationAxes = function (xAxis /* left */, yAxis /* up */,
 	this.orientation.setAxes(xAxis, yAxis, zAxis);
 	var e = this.orientation.e;		// Grab the values directly from the matrix.
 	this.listener.setOrientation(e[8], e[9], e[10], e[4], e[5], e[6]);
+	this.playerObject.setDirection(this.getPlayerDirection());
 	this.updateEarInfo();
 
 	if (this.canvas) {
@@ -373,8 +377,13 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 		var moveRange = this.moveMaxRadius - this.rotateMaxRadius;
 		magnitude -= this.rotateMaxRadius;		// Moving within the inner circle will reorient the player without moving them.
 		if (magnitude > 0) {
-			var moveLength = vecFromCenter.length() * (magnitude / moveRange) * this.maxVelocity * (interval / 1000);
-			this.movePlayer(new Vector(0.0, 0.0, moveLength));
+			var moveDistance = vecFromCenter.length() * (magnitude / moveRange) * this.maxVelocity * (interval / 1000);
+			this.movePlayer(new Vector(0.0, 0.0, moveDistance));
+			this.pedometer += moveDistance;
+			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
+				this.numSteps = Math.floor(this.pedometer / this.stepSize);
+				this.playerObject.play(WebAudio.getSoundSource("stepForward"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+			}
 		}
 	}
 	if (this.moveMode == "back" && this.backRange.contains(angle)) {
@@ -383,8 +392,13 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 		this.setPlayerDirectionA(this.moveInitialAngle + (angle - MathExt.degToRad(90)));
 		magnitude -= this.rotateMaxRadius;
 		if (magnitude > 0) {
-			var moveLength = vecFromCenter.length() * (magnitude / moveRange) * this.maxBackVelocity * (interval / 1000);
-			this.movePlayer(new Vector(0.0, 0.0, -moveLength))
+			var moveDistance = vecFromCenter.length() * (magnitude / moveRange) * this.maxBackVelocity * (interval / 1000);
+			this.movePlayer(new Vector(0.0, 0.0, -moveDistance))
+			this.pedometer += moveDistance;
+			if (Math.floor(this.pedometer / this.stepSize) > this.numSteps) {
+				this.numSteps = Math.floor(this.pedometer / this.stepSize);
+				this.playerObject.play(WebAudio.getSoundSource("stepBack"), false, 0, { offset: new Vector(this.numSteps % 2 == 1 ? -0.1 : 0.1, -1.5, 0) });	
+			}
 		}
 	}
 }
@@ -450,6 +464,8 @@ Scene.prototype.redraw = function (interval) {
 	canvas.drawText("+5Z", tic * 1.25, 4.9);
 	canvas.drawLine(-5, -tic, -5, tic, "rgb(100, 100, 100)");	// draw a tick at 5.
 	
+	this.playerObject.draw(canvas);
+
 	// Draw the player
 	var pos = this.position;
 	var dir = this.getPlayerDirection();
@@ -464,7 +480,7 @@ Scene.prototype.redraw = function (interval) {
 			obj.draw(canvas);
 		}
 	}
-
+	
 	// Draw each echo object
 	for (var i = 0; i < this.echoObjects.length; i++) {
 		this.echoObjects[i].draw(canvas);
