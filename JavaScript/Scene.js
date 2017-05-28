@@ -432,6 +432,7 @@ Scene.prototype.updateTouchMovement = function (interval /* in ms */) {
 }
 
 Scene.prototype.onBehavior = function () {
+	var startTime = Date.now();
 
 	for (var id in this.objects) {
 		if (this.objects.hasOwnProperty(id)) {
@@ -442,6 +443,11 @@ Scene.prototype.onBehavior = function () {
 			//}
 		}
 	}
+
+	var timing = Date.now() - startTime;
+	//console.log("time: " + timing);
+	//console.log("rate: " + 1000/timing);
+
 }
 
 // Inform all objects that they are about to be drawn.  Interval is ms since the last redraw.

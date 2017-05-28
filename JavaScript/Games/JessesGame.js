@@ -32,7 +32,7 @@ JessesGame.prototype.loadAllSounds = function () {
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/InCharge.mp3", "inCharge");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Explosion.mp3", "explosion");
 	WebAudio.loadSoundSource("Sounds/TextToSpeech/Bark.mp3", "bark");
-	WebAudio.loadSoundSource("Sounds/TextToSpeech/Bark2.mp3", "bark2");
+	WebAudio.loadSoundSource("Sounds/TextToSpeech/Bark2.wav", "bark2");
 };
 
 
@@ -45,6 +45,8 @@ JessesGame.prototype.createScene = function () {
 	this.scene.addEchoObject(new EchoObject(new Vector2(-4, -1), new Vector2(-4, -4)));
 
 	var guideLocations = [[-45, 30], [-30, 36], [-24, 24], [-30, 9], [-21, 6], [-15, 0]];
+
+	var path = [[0,0], [-12, -3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3]];
 
 	var nextGuide = undefined;
 
@@ -79,7 +81,9 @@ JessesGame.prototype.createScene = function () {
 
 
 
-	var mineLocations = [[-12, 3], [-12, -3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3]];
+	var mineLocations = [[-12, 3], [-12, -3], [-10, 3], [-10, -3], [-8, 3], [-8, -3], [-6, 3], [-6, -3],
+		[-44, 32], [-44, 28]
+	];
 
 	for (var i in mineLocations) {
 		var location = mineLocations[i];
