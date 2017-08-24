@@ -8,11 +8,13 @@
 	<link rel="stylesheet" href="css/main.css" />
 
 	<script src="Scripts/jquery-3.1.1.js"></script>
-
+	<script src="Scripts/require.js"></script>
+	<!--
    <script src="JavaScript/Common/Utils.js"></script>
    <script src="JavaScript/Common/DeviceMotion.js"></script>
+		-->
 
-	<script src="JavaScript/Canvas2D.js"></script>
+	<!--<script src="JavaScript/Canvas2D.js"></script>
    <script src="JavaScript/WebAudio.js"></script>
    <script src="JavaScript/Sound.js"></script>
    <script src="JavaScript/PannerSound.js"></script>
@@ -21,7 +23,7 @@
    <script src="JavaScript/Game.js"></script>
    <script src="JavaScript/Games/MattsGame.js"></script>
 	<script src="JavaScript/EchoObject.js"></script>
-	<script src="JavaScript/EchoSound.js"></script>
+	<script src="JavaScript/EchoSound.js"></script> -->
 	<!--<script src="JavaScript/TestSound.js"></script>-->
    <!--
 		Files for trying out different sound effects.
@@ -42,6 +44,12 @@
 
 		function onLoad() {
 
+			requirejs.config({
+				baseUrl: './JavaScript',
+				priority: [],
+				paths: { }
+			});
+
 			var container = document.getElementById("canvas_container");
 			var canvas = document.createElement("canvas");
 			canvas.setAttribute("width", Math.min(screen.width - 30, 800));
@@ -49,10 +57,10 @@
 			canvas.setAttribute("tabindex", 1);	// tabindex on canvas makes it focusable.
 			container.appendChild(canvas);
 
-			var game = new MattsGame(canvas);
-
-			initSound = new SceneObject({ soundType: 1} );
-
+			require(["Games/MattsGame", "SceneObject"], function (MattsGame, SceneObject) {
+				var game = new MattsGame(canvas);
+				initSound = new SceneObject({ soundType: 1} );
+			});
 
 			//this.testSound = new SceneObject(
 			//{
