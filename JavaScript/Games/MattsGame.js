@@ -150,7 +150,7 @@ define(function (require) {
 								this.play(WebAudio.getSoundSource("Behind" + this.hostState));
 
 							this.numDirs++;
-							if (this.numDirs > 10)
+							if (this.numDirs > 1000)
 								this.hostState = 1;		// Make her mad
 						}
 						this.lastSoundStart = Date.now();

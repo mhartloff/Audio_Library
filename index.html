@@ -59,7 +59,8 @@
 
 			require(["Games/MattsGame", "SceneObject"], function (MattsGame, SceneObject) {
 				var game = new MattsGame(canvas);
-				initSound = new SceneObject({ soundType: 1} );
+				initSound = new SceneObject({ soundType: 1 });
+				scene = game.scene;
 			});
 
 			//this.testSound = new SceneObject(
@@ -72,7 +73,18 @@
 			//});
 		};
         
+		function onInitClick() {
+			console.log("OnInitClicke");
+			require(["WebAudio"], function (WebAudio) {
+				console.log("OnInitCLick()");
+				initSound.play(WebAudio.getSoundSource('sword'));
+			});
+
+		};
 		
+		function onStopAllClick() {
+			scene.stopAllSounds();
+		};
 		
 	
 		
@@ -90,7 +102,7 @@
    <br>
     
    <!--<input type="button" value="BIRDY" onclick="bird.play(WebAudio.getSoundSource('owl'));" />-->
-   <input type="button" value="CREEK" onclick="initSound.play(WebAudio.getSoundSource('sword'));" />-->
+   <input type="button" value="INIT" onclick="onInitClick()" />
   <!-- <input type="button" value="TEST" onclick="testSound.play(WebAudio.getSoundSource('owl')); " /><br /><br> -->
 	   
    <!--<input type="button" value="OWL" onclick="playSound('owl');" />
@@ -99,7 +111,7 @@
 	<input type="button" value="SWORD" onclick="playSound('sword');" />
 	<input type="button" value="Scream" onclick="playSound('Scream');" /><br /> 
    Repeat: <input type="checkbox" id="repeatSound" /><br>  -->
-   <input type="button" value="Stop All" onclick="scene.stopAllSounds();" /><br /><br>
+   <input type="button" value="Stop All" onclick="onStopAllClick()" /><br /><br>
    
    Position Info (+Y comes out of the screen) <br>
 	

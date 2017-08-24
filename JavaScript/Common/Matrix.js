@@ -154,7 +154,8 @@ define(function (require) {
 		var e = this.e;
 		e[0] = xVec.x; e[1] = xVec.y; e[2] = xVec.z;
 		e[4] = yVec.x; e[5] = yVec.y; e[6] = yVec.z;
-		e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
+		if (zVec)
+			e[8] = zVec.x; e[9] = zVec.y; e[10] = zVec.z;
 	}
 
 	// Set the orientation of the axes where the z vec goes into the screen.
@@ -162,7 +163,8 @@ define(function (require) {
 		var e = this.e;
 		e[0] = xVec.x; e[4] = xVec.y; e[8] = xVec.z;
 		e[1] = yVec.x; e[5] = yVec.y; e[9] = yVec.z;
-		e[2] = zVec.x; e[6] = zVec.y; e[10] = zVec.z;
+		if (zVec)
+			e[2] = zVec.x; e[6] = zVec.y; e[10] = zVec.z;
 	}
 
 
@@ -170,17 +172,27 @@ define(function (require) {
 		var e = this.e;
 		e[0] = 1; e[4] = 0; e[8] = 0; e[12] = x;
 		e[1] = 0; e[5] = 1; e[9] = 0; e[13] = y;
-		e[2] = 0; e[6] = 0; e[10] = 1; e[14] = z;
+		e[2] = 0; e[6] = 0; e[10] = 1; 
+		e[14] = (z === undefined) ? 0.0 : z;
 		e[3] = 0; e[7] = 0; e[11] = 0; e[15] = 1;
 		return this;
 	};
 
 	Matrix.prototype.translate = function (x, y, z) {
 		var e = this.e;
-		e[12] += e[0] * x + e[4] * y + e[8] * z;
-		e[13] += e[1] * x + e[5] * y + e[9] * z;
-		e[14] += e[2] * x + e[6] * y + e[10] * z;
-		e[15] += e[3] * x + e[7] * y + e[11] * z;
+
+		if (z === undefined) {
+			e[12] += e[0] * x + e[4] * y;
+			e[13] += e[1] * x + e[5] * y;
+			e[14] += e[2] * x + e[6] * y;
+			e[15] += e[3] * x + e[7] * y;
+		}
+		else {
+			e[12] += e[0] * x + e[4] * y + e[8] * z;
+			e[13] += e[1] * x + e[5] * y + e[9] * z;
+			e[14] += e[2] * x + e[6] * y + e[10] * z;
+			e[15] += e[3] * x + e[7] * y + e[11] * z;
+		}
 		return this;
 	};
 
